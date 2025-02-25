@@ -6,19 +6,304 @@
   <title>Page Baru</title>
   <!-- Sertakan CSS dan resource lain jika diperlukan -->
   <link rel="stylesheet" href="style.css">
+  <!-- Font Modern -->
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,400,500">
+  <style>
+    /* Styling untuk tabel */
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 20px 0;
+    }
+    table, th, td {
+      border: 1px solid #ccc;
+    }
+    th, td {
+      padding: 8px 12px;
+      text-align: left;
+    }
+    th {
+      background: #f4f4f4;
+    }
+    /* Styling untuk navigasi */
+    nav {
+      background: #3949ab;
+      padding: 10px;
+      margin-bottom: 20px;
+    }
+    nav ul {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+      display: flex;
+    }
+    nav ul li {
+      margin-right: 15px;
+    }
+    nav ul li a {
+      color: #fff;
+      text-decoration: none;
+      font-weight: bold;
+    }
+    nav ul li a:hover {
+      text-decoration: underline;
+    }
+    /* Footer Styling */
+    footer {
+      background: #3949ab;
+      color: #fff;
+      text-align: center;
+      padding: 20px 10px;
+      margin-top: 40px;
+    }
+    footer a {
+      color: #ffca28;
+      margin: 0 5px;
+    }
+    /* Input filter */
+    #filterInput, #dateFrom, #dateTo, #cabangFilter {
+      margin: 5px 0;
+      padding: 8px;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+    }
+    #filterSection {
+      margin: 20px 0;
+    }
+    #filterSection label {
+      margin-right: 10px;
+    }
+    /* Styling untuk total data */
+    #totalData {
+      margin-top: 10px;
+      font-weight: bold;
+    }
+  </style>
 </head>
 <body>
   <header>
-    <h1>Ini Halaman Baru</h1>
+    <h1>Detail</h1>
+    <!-- Navigasi tambahan -->
     <nav>
-      <a href="index.html">Kembali ke Dashboard</a>
+      <ul>
+        <li><a href="index.html">Dashboard</a></li>
+        <li><a href="COA.html">Avg Biaya</a></li>
+        <li><a href="laporan.html">Laporan</a></li>
+        <li><a href="setting.html">Setting</a></li>
+      </ul>
     </nav>
   </header>
   <main>
-    <p>Konten halaman baru Anda di sini.</p>
+    <!-- Bagian untuk semua filter -->
+    <div id="filterSection">
+      <!-- Filter Global (cari teks di semua kolom) -->
+      <label>
+        Filter Teks:
+        <input type="text" id="filterInput" placeholder="Cari data...">
+      </label>
+      <!-- Filter Date From dan Date To -->
+      <label>
+        Date From:
+        <input type="date" id="dateFrom">
+      </label>
+      <label>
+        Date To:
+        <input type="date" id="dateTo">
+      </label>
+      <!-- Filter kolom Cabang -->
+      <label>
+        Cabang:
+        <input type="text" id="cabangFilter" placeholder="Nama Cabang...">
+      </label>
+    </div>
+
+    <!-- Tabel dengan header yang telah ditentukan -->
+    <table>
+      <thead>
+        <tr>
+          <th>Transaksi Date</th>
+          <th>Cabang</th>
+          <th>Wilayah</th>
+          <th>Acount</th>
+          <th>COA</th>
+          <th>Remaks</th>
+          <th>Nilai</th>
+        </tr>
+      </thead>
+      <tbody id="data-table">
+        <!-- Data dari Google Sheets akan dimuat di sini -->
+      </tbody>
+    </table>
+
+    <!-- Tampilan total data dan total nilai -->
+    <div id="totalData"></div>
   </main>
   <footer>
     <p>&copy; 2025 Nama Perusahaan. All rights reserved.</p>
+    <p>
+      <a href="#">Facebook</a> | 
+      <a href="#">Twitter</a> | 
+      <a href="#">Instagram</a>
+    </p>
+    <p>Sumber Data: Google Sheets &amp; API. Info lebih lanjut hubungi 
+      <a href="mailto:agungsamodraa@gmail.com">agungsamodraa@gmail.com</a>
+    </p>
   </footer>
+  
+  <script>
+    // Fungsi untuk format angka dengan pemisah ribuan
+    function formatNumber(num) {
+      if (!num) return '';
+      return Number(num).toLocaleString('en-US');
+    }
+    
+    // Fungsi untuk mengambil data dari URL web Apps Script
+    function getDataFromSheet() {
+      // Ganti URL berikut dengan URL web Apps Script Anda yang telah dipublish
+      const sheetUrl = 'https://script.google.com/macros/s/AKfycbxEDV3uXouB3IIGMlovoW52zQ-nHAkzz8UMkcLn1Oqy-1sFFnMzsxYcVIaBryVyNE6O8w/exec';
+      
+      fetch(sheetUrl)
+        .then(response => response.json())
+        .then(data => {
+          console.log("Data diterima:", data);
+          // Jika data diambil dari properti FIN, gunakan data.FIN
+          let rows = data.FIN || data;
+          
+          // Asumsikan baris pertama berisi header, kita lewati
+          let tableContent = '';
+          for (let i = 1; i < rows.length; i++) {
+            let row = rows[i];
+            
+            // Parse tanggal di kolom [3] (sesuaikan dengan kolom sebenarnya)
+            let rawDate = row[3] || ''; 
+            let formattedDate = '';
+            if (rawDate) {
+              let dateObj = new Date(rawDate);
+              if (!isNaN(dateObj.getTime())) {
+                let day = String(dateObj.getDate()).padStart(2, '0');
+                let month = String(dateObj.getMonth() + 1).padStart(2, '0');
+                let year = dateObj.getFullYear();
+                formattedDate = `${day}/${month}/${year}`;
+              } else {
+                formattedDate = rawDate;
+              }
+            }
+            
+            // Bangun isi tabel (sesuaikan indeks kolom sesuai data Anda)
+            tableContent += '<tr>';
+            tableContent += `<td>${formattedDate}</td>`;           // Transaksi Date
+            tableContent += `<td>${row[11] || ''}</td>`;               // Cabang
+            tableContent += `<td>${row[17] || ''}</td>`;               // Wilayah
+            tableContent += `<td>${row[5] || ''}</td>`;                // Acount
+            tableContent += `<td>${row[7] || ''}</td>`;                // COA
+            tableContent += `<td>${row[9] || ''}</td>`;                // Remaks
+            tableContent += `<td>${formatNumber(row[10] || '')}</td>`;   // Nilai dengan format ribuan
+            tableContent += '</tr>';
+          }
+          
+          // Masukkan data ke dalam tabel
+          document.getElementById('data-table').innerHTML = tableContent;
+          // Inisialisasi filter setelah data dimuat
+          initFilter();
+          // Hitung dan tampilkan total data awal (sebelum filter atau filter default)
+          applyFilters();
+        })
+        .catch(error => {
+          console.error('Error loading data:', error);
+        });
+    }
+    
+    // Inisialisasi event listener untuk filter
+    function initFilter() {
+      const filterInput = document.getElementById('filterInput');
+      const dateFromInput = document.getElementById('dateFrom');
+      const dateToInput = document.getElementById('dateTo');
+      const cabangInput = document.getElementById('cabangFilter');
+    
+      filterInput.addEventListener('keyup', applyFilters);
+      dateFromInput.addEventListener('change', applyFilters);
+      dateToInput.addEventListener('change', applyFilters);
+      cabangInput.addEventListener('keyup', applyFilters);
+    }
+    
+    // Fungsi untuk menerapkan filter, menghitung total data dan total nilai yang tampil
+    function applyFilters() {
+      const filterValue = document.getElementById('filterInput').value.toUpperCase();
+      const dateFromValue = document.getElementById('dateFrom').value;  // "YYYY-MM-DD"
+      const dateToValue = document.getElementById('dateTo').value;      // "YYYY-MM-DD"
+      const cabangValue = document.getElementById('cabangFilter').value.toUpperCase();
+      
+      let dateFrom = dateFromValue ? new Date(dateFromValue) : null;
+      let dateTo = dateToValue ? new Date(dateToValue) : null;
+    
+      const tableBody = document.getElementById('data-table');
+      const tr = tableBody.getElementsByTagName('tr');
+      let totalCount = 0;
+      let totalNilai = 0;
+    
+      for (let i = 0; i < tr.length; i++) {
+        const tds = tr[i].getElementsByTagName('td');
+        if (tds.length < 7) continue; // Pastikan baris memiliki semua kolom
+        
+        // Ambil nilai dari setiap kolom
+        const tanggalText = tds[0].textContent.trim();
+        const cabangText = tds[1].textContent.trim().toUpperCase();
+    
+        // Cek filter global (mencari di semua kolom)
+        if (
+          tanggalText.toUpperCase().indexOf(filterValue) > -1 ||
+          cabangText.indexOf(filterValue) > -1 ||
+          tds[2].textContent.trim().toUpperCase().indexOf(filterValue) > -1 ||
+          tds[3].textContent.trim().toUpperCase().indexOf(filterValue) > -1 ||
+          tds[4].textContent.trim().toUpperCase().indexOf(filterValue) > -1 ||
+          tds[5].textContent.trim().toUpperCase().indexOf(filterValue) > -1 ||
+          tds[6].textContent.trim().toUpperCase().indexOf(filterValue) > -1 
+        ) {
+          // Cek filter tanggal jika nilai dateFrom dan dateTo ada
+          let showRow = true;
+          if (dateFrom || dateTo) {
+            // Konversi tanggal dari teks (format dd/mm/yyyy) ke objek Date
+            const parts = tanggalText.split('/');
+            if (parts.length === 3) {
+              const rowDate = new Date(parts[2], parts[1] - 1, parts[0]);
+              if (dateFrom && rowDate < dateFrom) {
+                showRow = false;
+              }
+              if (dateTo && rowDate > dateTo) {
+                showRow = false;
+              }
+            }
+          }
+          // Cek filter cabang
+          if (cabangValue && cabangText.indexOf(cabangValue) === -1) {
+            showRow = false;
+          }
+    
+          if (showRow) {
+            tr[i].style.display = '';
+            totalCount++;
+            // Ambil nilai dari kolom Nilai (indeks 6), hilangkan koma, lalu konversi ke number
+            let nilaiText = tds[6].textContent.trim().replace(/,/g, '');
+            totalNilai += Number(nilaiText) || 0;
+          } else {
+            tr[i].style.display = 'none';
+          }
+        } else {
+          tr[i].style.display = 'none';
+        }
+      }
+    
+      updateTotalData(totalCount, totalNilai);
+    }
+    
+    // Fungsi untuk menampilkan total data dan total nilai yang tampil
+    function updateTotalData(totalCount = 0, totalNilai = 0) {
+      const totalDataElement = document.getElementById('totalData');
+      totalDataElement.textContent = `Total Data: ${totalCount} | Total Nilai: ${formatNumber(totalNilai)}`;
+    }
+    
+    // Panggil fungsi untuk mengambil data saat halaman dimuat
+    getDataFromSheet();
+  </script>
 </body>
 </html>
