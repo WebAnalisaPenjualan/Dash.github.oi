@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Transaksi - Analisa COA</title>
+  <!-- Sertakan CSS jika diperlukan -->
+  <link rel="stylesheet" href="style.css">
+  <!-- Font Modern -->
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,400,500">
+  <!-- Chart.js CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    body { font-family: Roboto, sans-serif; }
+    header { background: #3949ab; padding: 20px; color: #fff; }
+    nav ul { list-style: none; display: flex; gap: 15px; padding: 0; margin: 0; }
+    nav ul li a { color: #fff; text-decoration: none; font-weight: bold; }
+    main { padding: 20px; }
+    /* Filter Section */
+    #filterSection { margin-bottom: 20px; }
+    #filterSection label { font-weight: bold; margin-right: 10px; }
+    #filterSection select { padding: 5px; border: 1px solid #ccc; border-radius: 4px; }
+    .summary { margin-top: 20px; }
+    table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+    table, th, td { border: 1px solid #ccc; }
+    th, td { padding: 8px 12px; text-align: left; }
+    th { background: #f4f4f4; }
+    canvas { max-width: 100%; margin-top: 20px; }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Transaksi - Analisa COA</h1>
+    <nav>
+      <ul>
+        <li><a href="index.html">Dashboard</a></li>
+        <li><a href="transaksi.html">Transaksi</a></li>
+        <li><a href="laporan.html">Laporan</a></li>
+        <li><a href="setting.html">Setting</a></li>
+      </ul>
+    </nav>
+  </header>
+  <main>
+    <!-- Filter Cabang menggunakan dropdown -->
+    <div id="filterSection">
+      <label for="filterCabang">Filter Cabang: </label>
+      <select id="filterCabang">
+        <option value="">Semua Cabang</option>
+        <!-- Opsi akan diisi secara dinamis -->
+      </select>
+    </div>
+    
+    <!-- Summary hasil perhitungan COA -->
+    <div class="summary" id="summary">
+      <!-- Hasil total per COA dan rata-rata per bulan akan ditampilkan di sini -->
+    </div>
+    
+    <!-- Canvas untuk grafik analisa COA -->
+    <canvas id="coaChart"></canvas>
+  </main>
+  
+  <footer>
+    <p>&copy; 2025 Nama Perusahaan. All rights reserved.</p>
+    <p>
+      <a href="#">Facebook</a> | 
+      <a href="#">Twitter</a> | 
+      <a href="#">Instagram</a>
+    </p>
+    <p>Sumber Data: Google Sheets &amp; API. Hubungi <a href="mailto:agungsamodraa@gmail.com">agungsamodraa@gmail.com</a></p>
+  </footer>
+  
+  <script>
+    // Fungsi format angka dengan pemisah ribuan
+    function formatNumber(num) {
+      if (!num) return '';
+      return Number(num).toLocaleString('en-US');
+    }
+    
+    // Variabel global untuk menyimpan data transaksi asli
+    let transactions = [];
+    
+    // Fungsi untuk mengambil data dari Google Sheets
+    function getDataFromSheet() {
+      const sheetUrl = 'https://script.google.com/macros/s/AKfycbxEDV3uXouB3IIGMlovoW52zQ-nHAkzz8UMkcLn1Oqy-1sFFnMzsxYcVIaBryVyNE6O8w/exec';
+      
+      fetch(sheetUrl)
+        .then(response => response.json())
+        .then(data => {
+          let rows = data.FIN || data;
+          // Simpan data transaksi ke variabel global (lewati header)
+          transactions = rows.slice(1);
+          populateCabangOptions(transactions);
+          applyFilters();
+        })
+        .catch(error => console.error('Error loading data:', error));
+    }
+    
+    // Fungsi untuk mengisi dropdown filter cabang secara dinamis
+    function populateCabangOptions(data) {
+      const selectCabang = document.getElementById('filterCabang');
+      // Gunakan Set untuk mendapatkan daftar cabang unik
+      const cabangSet = new Set();
+      data.forEach(row => {
+        const cabang = row[11] || '';
+        if(cabang) {
+          cabangSet.add(cabang.trim());
+        }
+      });
+      // Hapus opsi selain "Semua Cabang" terlebih dahulu
+      selectCabang.innerHTML = '<option value="">Semua Cabang</option>';
+      // Tambahkan opsi dari data yang unik
+      Array.from(cabangSet).forEach(cabang => {
+        const option = document.createElement('option');
+        option.value = cabang.toLowerCase();
+        option.textContent = cabang;
+        selectCabang.appendChild(option);
+      });
+    }
+    
+    // Fungsi untuk menerapkan filter berdasarkan cabang dan menghitung ulang perhitungan COA
+    function applyFilters() {
+      const filterValue = document.getElementById('filterCabang').value.toLowerCase();
+      // Filter transaksi berdasarkan cabang (diasumsikan kolom cabang berada di indeks 11)
+      const filteredTransactions = transactions.filter(row => {
+        const cabang = (row[11] || '').toLowerCase();
+        return filterValue === '' || cabang.includes(filterValue);
+      });
+      calculateCOA(filteredTransactions);
+    }
+    
+    // Fungsi untuk menghitung total nilai per COA dan rata-rata per bulan berdasarkan data yang diberikan
+    function calculateCOA(data) {
+      const coaTotals = {};
+      const coaMonthly = {};
+      
+      data.forEach(row => {
+        const coa = row[7] || 'Unknown';
+        const nilai = Number(row[10]) || 0;
+        const rawDate = row[3] || '';
+        let monthKey = 'Unknown';
+        if (rawDate) {
+          let dateObj = new Date(rawDate);
+          if (!isNaN(dateObj.getTime())) {
+            let year = dateObj.getFullYear();
+            let month = String(dateObj.getMonth() + 1).padStart(2, '0');
+            monthKey = `${year}-${month}`;
+          }
+        }
+        
+        coaTotals[coa] = (coaTotals[coa] || 0) + nilai;
+        
+        if (!coaMonthly[coa]) {
+          coaMonthly[coa] = {};
+        }
+        coaMonthly[coa][monthKey] = (coaMonthly[coa][monthKey] || 0) + nilai;
+      });
+      
+      const coaAverages = {};
+      for (let coa in coaMonthly) {
+        const monthlyData = coaMonthly[coa];
+        const months = Object.keys(monthlyData);
+        const totalMonths = months.length;
+        const totalNilai = months.reduce((sum, key) => sum + monthlyData[key], 0);
+        coaAverages[coa] = totalMonths > 0 ? (totalNilai / totalMonths) : 0;
+      }
+      
+      displaySummary(coaTotals, coaAverages);
+      buildChart(coaTotals);
+    }
+    
+    // Fungsi untuk menampilkan summary perhitungan
+    function displaySummary(coaTotals, coaAverages) {
+      const summaryDiv = document.getElementById('summary');
+      let html = '<h2>Summary COA</h2>';
+      html += '<table>';
+      html += '<thead><tr><th>COA</th><th>Total Nilai</th><th>Rata-rata per Bulan</th></tr></thead><tbody>';
+      for (let coa in coaTotals) {
+        html += `<tr>
+                  <td>${coa}</td>
+                  <td>${formatNumber(coaTotals[coa])}</td>
+                  <td>${formatNumber(coaAverages[coa].toFixed(2))}</td>
+                </tr>`;
+      }
+      html += '</tbody></table>';
+      summaryDiv.innerHTML = html;
+    }
+    
+    // Fungsi untuk membuat grafik analisa COA menggunakan Chart.js
+    function buildChart(coaTotals) {
+      const ctx = document.getElementById('coaChart').getContext('2d');
+      const labels = Object.keys(coaTotals);
+      const dataValues = labels.map(coa => coaTotals[coa]);
+      
+      new Chart(ctx, {
+        type: 'bar',
+        data: {
+          labels: labels,
+          datasets: [{
+            label: 'Total Nilai per COA',
+            data: dataValues,
+            backgroundColor: 'rgba(57, 73, 171, 0.6)',
+            borderColor: 'rgba(57, 73, 171, 1)',
+            borderWidth: 1
+          }]
+        },
+        options: {
+          responsive: true,
+          scales: {
+            y: {
+              beginAtZero: true,
+              ticks: {
+                callback: function(value) {
+                  return formatNumber(value);
+                }
+              }
+            }
+          },
+          plugins: {
+            tooltip: {
+              callbacks: {
+                label: function(context) {
+                  return formatNumber(context.parsed.y);
+                }
+              }
+            }
+          }
+        }
+      });
+    }
+    
+    // Event listener untuk filter Cabang menggunakan dropdown
+    document.getElementById('filterCabang').addEventListener('change', applyFilters);
+    
+    // Panggil fungsi untuk mengambil data saat halaman dimuat
+    getDataFromSheet();
+  </script>
+</body>
+</html>
