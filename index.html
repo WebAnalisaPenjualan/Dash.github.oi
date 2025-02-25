@@ -329,9 +329,9 @@
         <div></div>
       </div>
       <nav id="nav-menu">
-        <a href="view1.html">Page</a>
-        <a href="view2.html">Ana</a>
-        <a href="view3.html">das</a>
+        <a href="view1.html">Detail</a>
+        <a href="view2.html">Finance</a>
+        <a href="view3.html">ControlTrack</a>
       </nav>
       
     </div>
@@ -1240,17 +1240,17 @@
       });
     }
     
-    // Ambil data dari Google Sheets
-    function getDataFromSheet() {
-      var sheetUrl = 'https://script.google.com/macros/s/AKfycbzYfwDZVjGcBceMWfd_ORI1tQgA-Oj9tS4vOt5WYb3i3ucjjoxu3SnWTtj3GhQCIxBMVw/exec';
-      $.getJSON(sheetUrl, function(response) {
-        console.log("Response:", response);
-        updateDashboardTable(response);
-        // Panggil fungsi untuk mengupdate Tabel Monitoring dengan data sheet P_V
-        updateMonitoringTable(response["P_V"]);
-      }).fail(function() {
-        console.error("Gagal mengambil data dari Google Sheets.");
-      });
+      // Ambil data dari Google Sheets
+      function getDataFromSheet() {
+        var sheetUrl = 'https://script.google.com/macros/s/AKfycbzYfwDZVjGcBceMWfd_ORI1tQgA-Oj9tS4vOt5WYb3i3ucjjoxu3SnWTtj3GhQCIxBMVw/exec';
+        $.getJSON(sheetUrl, function(response) {
+          console.log("Response:", response);
+          updateDashboardTable(response);
+          // Panggil fungsi untuk mengupdate Tabel Monitoring dengan data sheet P_V
+          updateMonitoringTable(response["P_V"]);
+        }).fail(function() {
+          console.error("Gagal mengambil data dari Google Sheets.");
+        });
     }
     
     $(document).ready(function() {
