@@ -6,19 +6,269 @@
   <title>Page Baru</title>
   <!-- Sertakan CSS dan resource lain jika diperlukan -->
   <link rel="stylesheet" href="style.css">
+  <!-- Font Modern -->
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,400,500">
+  <style>
+    /* Styling untuk tabel */
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 20px 0;
+    }
+    table, th, td {
+      border: 1px solid #ccc;
+    }
+    th, td {
+      padding: 8px 12px;
+      text-align: left;
+    }
+    th {
+      background: #f4f4f4;
+    }
+    /* Footer Styling */
+    footer {
+      background: #3949ab;
+      color: #fff;
+      text-align: center;
+      padding: 20px 10px;
+      margin-top: 40px;
+    }
+    footer a {
+      color: #ffca28;
+      margin: 0 5px;
+    }
+    /* Input filter */
+    #filterInput, #dateFrom, #dateTo, #cabangFilter {
+      margin: 5px 0;
+      padding: 8px;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+    }
+    #filterSection {
+      margin: 20px 0;
+    }
+    #filterSection label {
+      margin-right: 10px;
+    }
+  </style>
 </head>
 <body>
   <header>
-    <h1>Ini Halaman Baru</h1>
+    <h1>Detail</h1>
     <nav>
       <a href="index.html">Kembali ke Dashboard</a>
     </nav>
   </header>
   <main>
-    <p>Konten halaman baru Anda di sini.</p>
+    <!-- Bagian untuk semua filter -->
+    <div id="filterSection">
+      <!-- Filter Global (cari teks di semua kolom) -->
+      <label>
+        Filter Teks:
+        <input type="text" id="filterInput" placeholder="Cari data...">
+      </label>
+      <!-- Filter Date From dan Date To -->
+      <label>
+        Date From:
+        <input type="date" id="dateFrom">
+      </label>
+      <label>
+        Date To:
+        <input type="date" id="dateTo">
+      </label>
+      <!-- Filter kolom Cabang -->
+      <label>
+        Cabang:
+        <input type="text" id="cabangFilter" placeholder="Nama Cabang...">
+      </label>
+    </div>
+
+    <!-- Tabel dengan header yang telah ditentukan -->
+    <table>
+      <thead>
+        <tr>
+          <th>Tanggal Jual</th>
+          <th>Cabang</th>
+          <th>Wilayah</th>
+          <th>Supervisor/Field</th>
+          <th>Salesman</th>
+          <th>Nama Customer</th>
+          <th>KECAMATAN</th>
+          <th>Pembayaran</th>
+        </tr>
+      </thead>
+      <tbody id="data-table">
+        <!-- Data dari Google Sheets akan dimuat di sini -->
+      </tbody>
+    </table>
   </main>
   <footer>
     <p>&copy; 2025 Nama Perusahaan. All rights reserved.</p>
+    <p>
+      <a href="#">Facebook</a> | 
+      <a href="#">Twitter</a> | 
+      <a href="#">Instagram</a>
+    </p>
+    <p>Sumber Data: Google Sheets &amp; API. Info lebih lanjut hubungi <a href="mailto:agungsamodraa@gmail.com">agungsamodraa@gmail.com</a></p>
   </footer>
+  
+  <script>
+    // Fungsi untuk mengambil data dari URL web Apps Script
+    function getDataFromSheet() {
+      // Ganti URL berikut dengan URL web Apps Script Anda yang telah dipublish
+      const sheetUrl = 'https://script.google.com/macros/s/AKfycbwV4ZymIjEwWDxEBMZYZ4Y65WpUDGu4ijSQL6H0RYp6BCapNugYy5cPI9lGOQscTKm4/exec';
+      
+      fetch(sheetUrl)
+        .then(response => response.json())
+        .then(data => {
+          console.log("Data diterima:", data);
+
+          // Jika data diambil dari properti DP_1, gunakan data.DP_1
+          // Sesuaikan dengan struktur JSON Anda.
+          let rows = data.DP_1 || data;
+
+          // Asumsikan baris pertama berisi header, kita lewati
+          let tableContent = '';
+          for (let i = 1; i < rows.length; i++) {
+            let row = rows[i];
+            
+            // Parse tanggal di kolom [2] (sesuaikan dengan kolom sebenarnya)
+            let rawDate = row[2] || ''; 
+            let formattedDate = '';
+
+            // Coba parse string menjadi Date
+            if (rawDate) {
+              let dateObj = new Date(rawDate);
+              // Pastikan valid
+              if (!isNaN(dateObj.getTime())) {
+                let day = String(dateObj.getDate()).padStart(2, '0');
+                let month = String(dateObj.getMonth() + 1).padStart(2, '0');
+                let year = dateObj.getFullYear();
+                formattedDate = `${day}/${month}/${year}`;
+              } else {
+                // Jika gagal parse, tampilkan rawDate apa adanya
+                formattedDate = rawDate;
+              }
+            }
+
+            // Bangun isi tabel (sesuaikan index kolom)
+            tableContent += '<tr>';
+            tableContent += `<td>${formattedDate}</td>`;     // 0 - Tanggal (dd/mm/yyyy)
+            tableContent += `<td>${row[1] || ''}</td>`;      // 1 - Cabang
+            tableContent += `<td>${row[63] || ''}</td>`;     // 2 - Wilayah
+            tableContent += `<td>${row[44] || ''}</td>`;     // 3 - Supervisor/Field
+            tableContent += `<td>${row[36] || ''}</td>`;     // 4 - Salesman
+            tableContent += `<td>${row[9] || ''}</td>`;      // 5 - Nama Customer
+            tableContent += `<td>${row[12] || ''}</td>`;     // 7 - KECAMATAN
+            tableContent += `<td>${row[33] || ''}</td>`;     // 6 - Pembayaran
+            tableContent += '</tr>';
+          }
+
+          // Masukkan ke dalam tbody
+          document.getElementById('data-table').innerHTML = tableContent;
+
+          // Setelah data dimuat, set event listener untuk filter
+          initFilter();
+        })
+        .catch(error => {
+          console.error('Error loading data:', error);
+        });
+    }
+
+    // Inisialisasi event listener pada semua input filter
+    function initFilter() {
+      const filterInput = document.getElementById('filterInput');    // filter teks global
+      const dateFromInput = document.getElementById('dateFrom');     // filter date from
+      const dateToInput = document.getElementById('dateTo');         // filter date to
+      const cabangInput = document.getElementById('cabangFilter');   // filter cabang
+
+      // Ketika ada perubahan (atau ketikan) pada input, terapkan filter
+      filterInput.addEventListener('keyup', applyFilters);
+      dateFromInput.addEventListener('change', applyFilters);
+      dateToInput.addEventListener('change', applyFilters);
+      cabangInput.addEventListener('keyup', applyFilters);
+    }
+
+    // Fungsi utama untuk menerapkan semua filter
+    function applyFilters() {
+      // Ambil nilai dari semua input filter
+      const filterValue = document.getElementById('filterInput').value.toUpperCase();
+      const dateFromValue = document.getElementById('dateFrom').value;  // "YYYY-MM-DD" (string)
+      const dateToValue = document.getElementById('dateTo').value;      // "YYYY-MM-DD" (string)
+      const cabangValue = document.getElementById('cabangFilter').value.toUpperCase();
+
+      // Konversi dateFromValue & dateToValue ke objek Date
+      let dateFrom = dateFromValue ? new Date(dateFromValue) : null;
+      let dateTo = dateToValue ? new Date(dateToValue) : null;
+
+      let tableBody = document.getElementById('data-table');
+      let tr = tableBody.getElementsByTagName('tr');
+
+      for (let i = 0; i < tr.length; i++) {
+        let tds = tr[i].getElementsByTagName('td');
+        if (tds.length < 7) continue; // jaga-jaga kalau kolom tidak lengkap
+
+        // 0 => Tanggal, 1 => Cabang, ...
+        let tanggalText = tds[0].textContent.trim(); 
+        let cabangText = tds[1].textContent.trim().toUpperCase();
+
+        // ----------------------------
+        // 1. Cek Filter Global (filterValue)
+        //    Periksa semua kolom di baris ini.
+        let matchGlobal = false;
+        for (let j = 0; j < tds.length; j++) {
+          let txtValue = (tds[j].textContent || '').toUpperCase();
+          if (txtValue.indexOf(filterValue) > -1) {
+            matchGlobal = true;
+            break;
+          }
+        }
+
+        // ----------------------------
+        // 2. Cek Filter Tanggal (dateFrom, dateTo)
+        let matchDateRange = true; // asumsikan cocok
+        if (tanggalText) {
+          // tanggalText format "dd/mm/yyyy"
+          let parts = tanggalText.split('/');
+          if (parts.length === 3) {
+            let d = parseInt(parts[0], 10);
+            let m = parseInt(parts[1], 10) - 1; // zero-based month
+            let y = parseInt(parts[2], 10);
+            let rowDate = new Date(y, m, d);
+
+            // Jika dateFrom terisi dan rowDate < dateFrom => tidak cocok
+            if (dateFrom && rowDate < dateFrom) {
+              matchDateRange = false;
+            }
+            // Jika dateTo terisi dan rowDate > dateTo => tidak cocok
+            if (dateTo && rowDate > dateTo) {
+              matchDateRange = false;
+            }
+          }
+        }
+
+        // ----------------------------
+        // 3. Cek Filter Cabang (cabangValue)
+        //    Jika cabangValue tidak kosong, cek apakah ada substring
+        let matchCabang = true;
+        if (cabangValue) {
+          if (cabangText.indexOf(cabangValue) === -1) {
+            matchCabang = false;
+          }
+        }
+
+        // ----------------------------
+        // Kombinasi semua filter => harus sama-sama TRUE (AND)
+        if (matchGlobal && matchDateRange && matchCabang) {
+          tr[i].style.display = '';
+        } else {
+          tr[i].style.display = 'none';
+        }
+      }
+    }
+
+    // Panggil fungsi ketika halaman selesai dimuat
+    window.onload = getDataFromSheet;
+  </script>
 </body>
 </html>
