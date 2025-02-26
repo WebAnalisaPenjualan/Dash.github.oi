@@ -1,24 +1,266 @@
 <!DOCTYPE html>
-<html lang="id">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Page Baru</title>
-  <!-- Sertakan CSS dan resource lain jika diperlukan -->
-  <link rel="stylesheet" href="style.css">
-</head>
-<body>
-  <header>
-    <h1>Ini Halaman Baru</h1>
-    <nav>
-      <a href="index.html">Kembali ke Dashboard</a>
-    </nav>
-  </header>
-  <main>
-    <p>Konten halaman baru Anda di sini.</p>
-  </main>
-  <footer>
-    <p>&copy; 2025 Nama Perusahaan. All rights reserved.</p>
-  </footer>
-</body>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>ControlTrack</title>
+    <!-- Google Fonts -->
+    <link
+      href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      /* Global Styles */
+      * {
+        box-sizing: border-box;
+        font-family: 'Roboto', sans-serif;
+        margin: 0;
+        padding: 0;
+      }
+      body {
+        background: linear-gradient(135deg, #e0eafc, #cfdef3);
+        color: #333;
+        overflow-x: hidden;
+      }
+      header {
+        background-color: #fff;
+        padding: 2px;
+        text-align: center;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+      }
+      header h1 {
+        margin: 0;
+        font-size: 2.5em;
+        font-weight: bold;
+        color: #070707;
+      }
+      header p {
+        margin: 1px 0;
+        color: #000108;
+        font-style: italic;
+      }
+      header .version {
+        font-size: 0.6em;
+        color: #8291ed;
+      }
+      /* Sidebar Styles */
+      .sidebar {
+        position: fixed;
+        top: 0;
+        bottom: 0;
+        left: 0;
+        width: 60px;
+        background: #c9c9c9;
+        border-right: 2px solid #e0e0e0;
+        box-shadow: 2px 0 2px rgba(0, 0, 0, 0.1);
+        transition: width 0.3s ease;
+        z-index: 1000;
+        overflow: visible;
+      }
+      .sidebar:hover {
+        width: 200px;
+      }
+      .sidebar ul {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+      }
+      .sidebar li {
+        position: relative;
+      }
+      .sidebar a {
+        display: flex;
+        align-items: center;
+        text-decoration: none;
+        padding: 8px;
+        color: #000000;
+        font-size: 11px;
+        transition: background 0.2s, color 0.2s;
+      }
+      .sidebar a:hover {
+        background: #f0f0f0;
+        color: #000000;
+      }
+      /* Icon menggunakan tag <i> */
+      .menu-icon {
+        font-size: 24px;
+        margin-right: 8px;
+        transition: transform 0.2s;
+      }
+      .sidebar a:hover .menu-icon {
+        transform: scale(1.1);
+      }
+      .sidebar a span {
+        white-space: nowrap;
+        opacity: 0;
+        transition: opacity 0.3s;
+      }
+      .sidebar:hover a span {
+        opacity: 1;
+      }
+      /* Submenu (contoh untuk Income Statement) */
+      .kesamaping,
+      .submenu {
+        display: none;
+        position: absolute;
+        top: 0;
+        left: 100%;
+        background: #f9f9f9;
+        min-width: 140px;
+        z-index: 1000;
+        box-shadow: 2px 2px 6px rgba(0, 0, 0, 0.15);
+      }
+      .sidebar li:hover > .kesamaping,
+      .sidebar li.has-submenu:hover > .submenu {
+        display: block;
+      }
+      .kesamaping li a,
+      .submenu li a {
+        padding: 10px 15px;
+        font-size: 10px;
+        color: #4a90e2;
+        white-space: nowrap;
+      }
+      .kesamaping li a:hover,
+      .submenu li a:hover {
+        background: #e8e8e8;
+      }
+      /* Container untuk konten utama */
+      .container {
+        margin: 20px;
+        margin-left: 80px;
+        transition: margin-left 0.3s ease;
+      }
+    </style>
+  </head>
+  <body>
+    <!-- Sidebar -->
+    <div class="sidebar">
+      <ul>
+        <!-- Dashboard -->
+        <li>
+          <a href="#dashboard" id="dashboardLink">
+            <i class="menu-icon" aria-hidden="true">&#x1F3E0;</i>
+            <span>Dashboard</span>
+          </a>
+        </li>
+        <!-- KPI -->
+        <li>
+          <a href="#kpi" id="kpiLink">
+            <i class="menu-icon" aria-hidden="true">&#x1F4CA;</i>
+            <span>KPI</span>
+          </a>
+        </li>
+        <!-- Laporan Penjualan dengan submenu -->
+        <li>
+          <a href="#laporan" id="laporanPenjualanLink">
+            <i class="menu-icon" aria-hidden="true">&#x1F4C8;</i>
+            <span>Laporan Penjualan</span>
+          </a>
+          <ul class="kesamaping">
+            <li>
+              <a href="#salesAnalysis" id="salesAnalysisLink">
+                <i class="menu-icon" style="font-size:20px; margin-right:5px;" aria-hidden="true">&#x1F4CA;</i>
+                <span>Sales Analysis</span>
+              </a>
+            </li>
+            <li>
+              <a href="#trenSales" id="trenSalesLink">
+                <i class="menu-icon" style="font-size:20px; margin-right:5px;" aria-hidden="true">&#x1F4C8;</i>
+                <span>Tren Sales</span>
+              </a>
+            </li>
+            <li>
+              <a href="#achievement" id="achievementLink">
+                <i class="menu-icon" style="font-size:20px; margin-right:5px;" aria-hidden="true">&#x1F3C6;</i>
+                <span>Achievement</span>
+              </a>
+            </li>
+            <li>
+              <a href="#inputTargetSales" id="inputTargetSalesLink">
+                <i class="menu-icon" style="font-size:20px; margin-right:5px;" aria-hidden="true">&#x1F3AF;</i>
+                <span>Input Target Sales</span>
+              </a>
+            </li>
+          </ul>
+        </li>
+        <!-- Audit Transaksi -->
+        <li>
+          <a href="#audit">
+            <i class="menu-icon" aria-hidden="true">&#x1F50E;</i>
+            <span>Audit Transaksi</span>
+          </a>
+        </li>
+        <!-- IS Audit Control -->
+        <li>
+          <a href="#isauditcontrol" id="isauditcontrolLink">
+            <i class="menu-icon" aria-hidden="true">&#9881;</i>
+            <span>IS Audit Control</span>
+          </a>
+        </li>
+        <!-- Trial Balance -->
+        <li>
+          <a href="#trialbalance" id="trialbalanceLink">
+            <i class="menu-icon" aria-hidden="true">&#x1F4DA;</i>
+            <span>Trial Balance</span>
+          </a>
+        </li>
+        <!-- Income Statement dengan submenu -->
+        <li class="has-submenu">
+          <a href="#incomestatement" id="incomestatementLink">
+            <i class="menu-icon" aria-hidden="true">&#x1F4C4;</i>
+            <span>Income Statement</span>
+          </a>
+          <ul class="submenu">
+            <li>
+              <a href="#tbReport" id="tbReportLink">
+                <i class="menu-icon" style="font-size:20px; margin-right:5px;" aria-hidden="true">&#x1F5C4;</i>
+                <span>Report</span>
+              </a>
+            </li>
+            <li>
+              <a href="#tbAnalisa" id="tbAnalisaLink">
+                <i class="menu-icon" style="font-size:20px; margin-right:5px;" aria-hidden="true">&#x1F50D;</i>
+                <span>Analisa</span>
+              </a>
+            </li>
+          </ul>
+        </li>
+        <!-- Statement Of Cash Flows -->
+        <li>
+          <a href="#statementcashflows" id="statementcashflowsLink">
+            <i class="menu-icon" aria-hidden="true">&#x1F4B0;</i>
+            <span>Statement Of Cash Flows</span>
+          </a>
+        </li>
+        <!-- Potential Sales Claim Revenue -->
+        <li>
+          <a href="#potentialSalesClaimRevenue" id="potentialSalesClaimRevenueLink">
+            <i class="menu-icon" aria-hidden="true">&#x1F4B8;</i>
+            <span>Claim Revenue</span>
+          </a>
+        </li>
+        <!-- Sales Cash & Credit -->
+        <li>
+          <a href="#salesCashCredit" id="salesCashCreditLink">
+            <i class="menu-icon" aria-hidden="true">&#x1F4B3;</i>
+            <span>Sales Cash &amp; Credit</span>
+          </a>
+        </li>
+        <!-- Inventory Reconciliation -->
+        <li>
+          <a href="#inventoryreconciliation" id="inventoryReconciliationLink">
+            <i class="menu-icon" aria-hidden="true">&#x1F4C2;</i>
+            <span>Upload File</span>
+          </a>
+        </li>
+        <!-- Upload Data -->
+        <li>
+          <a href="index.html" id="uploadDataLink">
+            <i class="menu-icon" aria-hidden="true">  &#x25C0;</i>
+            <span>Kembali</span>
+          </a>
+        </li>
+    </div>
+  </body>
 </html>
