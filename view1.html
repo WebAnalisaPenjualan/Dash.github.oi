@@ -43,7 +43,6 @@
       padding: 8px;
       border: 1px solid #ccc;
       border-radius: 4px;
-      width: 100%; /* agar input full width */
     }
     #filterSection {
       margin: 20px 0;
@@ -51,42 +50,10 @@
     #filterSection label {
       margin-right: 10px;
     }
-    /* Responsif untuk mobile */
-    @media screen and (max-width: 600px) {
-      table, thead, tbody, th, td, tr {
-        display: block;
-      }
-      thead tr {
-        position: absolute;
-        top: -9999px;
-        left: -9999px;
-      }
-      tr { border: 1px solid #ccc; }
-      td {
-        border: none;
-        border-bottom: 1px solid #eee;
-        position: relative;
-        padding-left: 50%;
-        white-space: normal;
-        text-align: left;
-      }
-      td:before {
-        position: absolute;
-        top: 6px;
-        left: 6px;
-        width: 45%;
-        padding-right: 10px;
-        white-space: nowrap;
-        text-align: left;
-      }
-      td:nth-of-type(1):before { content: "Tanggal Jual"; }
-      td:nth-of-type(2):before { content: "Cabang"; }
-      td:nth-of-type(3):before { content: "Wilayah"; }
-      td:nth-of-type(4):before { content: "Supervisor/Field"; }
-      td:nth-of-type(5):before { content: "Salesman"; }
-      td:nth-of-type(6):before { content: "Nama Customer"; }
-      td:nth-of-type(7):before { content: "KECAMATAN"; }
-      td:nth-of-type(8):before { content: "Pembayaran"; }
+    /* Styling untuk total data */
+    #totalData {
+      margin-top: 10px;
+      font-weight: bold;
     }
   </style>
 </head>
@@ -122,25 +89,26 @@
     </div>
 
     <!-- Tabel dengan header yang telah ditentukan -->
-    <div style="overflow-x:auto;">
-      <table>
-        <thead>
-          <tr>
-            <th>Tanggal Jual</th>
-            <th>Cabang</th>
-            <th>Wilayah</th>
-            <th>Supervisor/Field</th>
-            <th>Salesman</th>
-            <th>Nama Customer</th>
-            <th>KECAMATAN</th>
-            <th>Pembayaran</th>
-          </tr>
-        </thead>
-        <tbody id="data-table">
-          <!-- Data dari Google Sheets akan dimuat di sini -->
-        </tbody>
-      </table>
-    </div>
+    <table>
+      <thead>
+        <tr>
+          <th>Tanggal Jual</th>
+          <th>Cabang</th>
+          <th>Wilayah</th>
+          <th>Supervisor/Field</th>
+          <th>Salesman</th>
+          <th>Nama Customer</th>
+          <th>Kecamatan</th>
+          <th>Pembayaran</th>
+        </tr>
+      </thead>
+      <tbody id="data-table">
+        <!-- Data dari Google Sheets akan dimuat di sini -->
+      </tbody>
+    </table>
+
+    <!-- Tampilan total data -->
+    <div id="totalData"></div>
   </main>
   <footer>
     <p>&copy; 2025 Nama Perusahaan. All rights reserved.</p>
@@ -162,11 +130,9 @@
         .then(response => response.json())
         .then(data => {
           console.log("Data diterima:", data);
-
           // Jika data diambil dari properti DP_1, gunakan data.DP_1
-          // Sesuaikan dengan struktur JSON Anda.
           let rows = data.DP_1 || data;
-
+          
           // Asumsikan baris pertama berisi header, kita lewati
           let tableContent = '';
           for (let i = 1; i < rows.length; i++) {
@@ -175,116 +141,130 @@
             // Parse tanggal di kolom [2] (sesuaikan dengan kolom sebenarnya)
             let rawDate = row[2] || ''; 
             let formattedDate = '';
-
-            // Coba parse string menjadi Date
             if (rawDate) {
               let dateObj = new Date(rawDate);
-              // Pastikan valid
               if (!isNaN(dateObj.getTime())) {
                 let day = String(dateObj.getDate()).padStart(2, '0');
                 let month = String(dateObj.getMonth() + 1).padStart(2, '0');
                 let year = dateObj.getFullYear();
                 formattedDate = `${day}/${month}/${year}`;
               } else {
-                // Jika gagal parse, tampilkan rawDate apa adanya
                 formattedDate = rawDate;
               }
             }
-
-            // Bangun isi tabel (sesuaikan index kolom)
+            
+            // Bangun isi tabel (sesuaikan indeks kolom sesuai data Anda)
             tableContent += '<tr>';
-            tableContent += `<td>${formattedDate}</td>`;     // 0 - Tanggal (dd/mm/yyyy)
-            tableContent += `<td>${row[1] || ''}</td>`;      // 1 - Cabang
-            tableContent += `<td>${row[63] || ''}</td>`;     // 2 - Wilayah
-            tableContent += `<td>${row[44] || ''}</td>`;     // 3 - Supervisor/Field
-            tableContent += `<td>${row[36] || ''}</td>`;     // 4 - Salesman
-            tableContent += `<td>${row[9] || ''}</td>`;      // 5 - Nama Customer
-            tableContent += `<td>${row[12] || ''}</td>`;     // 7 - KECAMATAN
-            tableContent += `<td>${row[33] || ''}</td>`;     // 6 - Pembayaran
+            tableContent += `<td>${formattedDate}</td>`;     // Tanggal Jual
+            tableContent += `<td>${row[1] || ''}</td>`;         // Cabang
+            tableContent += `<td>${row[63] || ''}</td>`;        // Wilayah
+            tableContent += `<td>${row[44] || ''}</td>`;        // Supervisor/Field
+            tableContent += `<td>${row[36] || ''}</td>`;        // Salesman
+            tableContent += `<td>${row[9] || ''}</td>`;         // Nama Customer
+            tableContent += `<td>${row[12] || ''}</td>`;        // Kecamatan
+            tableContent += `<td>${row[33] || ''}</td>`;        // Pembayaran
             tableContent += '</tr>';
           }
-
-          // Masukkan ke dalam tbody
+          
+          // Masukkan data ke dalam tabel
           document.getElementById('data-table').innerHTML = tableContent;
-
-          // Setelah data dimuat, set event listener untuk filter
+          // Inisialisasi filter setelah data dimuat
           initFilter();
+          // Hitung dan tampilkan total data awal (sebelum filter atau filter default)
+          updateTotalData();
         })
         .catch(error => {
           console.error('Error loading data:', error);
         });
     }
-
-    // Inisialisasi event listener pada semua input filter
+    
+    // Inisialisasi event listener untuk filter
     function initFilter() {
-      const filterInput = document.getElementById('filterInput');    // filter teks global
-      const dateFromInput = document.getElementById('dateFrom');     // filter date from
-      const dateToInput = document.getElementById('dateTo');         // filter date to
-      const cabangInput = document.getElementById('cabangFilter');   // filter cabang
-
-      // Ketika ada perubahan (atau ketikan) pada filter input, panggil fungsi filter
-      filterInput.addEventListener('input', applyFilter);
-      dateFromInput.addEventListener('input', applyFilter);
-      dateToInput.addEventListener('input', applyFilter);
-      cabangInput.addEventListener('input', applyFilter);
+      const filterInput = document.getElementById('filterInput');
+      const dateFromInput = document.getElementById('dateFrom');
+      const dateToInput = document.getElementById('dateTo');
+      const cabangInput = document.getElementById('cabangFilter');
+    
+      filterInput.addEventListener('keyup', applyFilters);
+      dateFromInput.addEventListener('change', applyFilters);
+      dateToInput.addEventListener('change', applyFilters);
+      cabangInput.addEventListener('keyup', applyFilters);
     }
-
-    // Fungsi untuk menerapkan filter pada tabel
-    function applyFilter() {
+    
+    // Fungsi untuk menerapkan filter dan menghitung total data yang tampil
+    function applyFilters() {
       const filterValue = document.getElementById('filterInput').value.toUpperCase();
-      const dateFrom = new Date(document.getElementById('dateFrom').value);
-      const dateTo = new Date(document.getElementById('dateTo').value);
+      const dateFromValue = document.getElementById('dateFrom').value;  // "YYYY-MM-DD"
+      const dateToValue = document.getElementById('dateTo').value;      // "YYYY-MM-DD"
       const cabangValue = document.getElementById('cabangFilter').value.toUpperCase();
-
-      // Ambil semua baris dari tabel, kecuali header (thead)
-      const tr = document.getElementById('data-table').getElementsByTagName('tr');
+      
+      let dateFrom = dateFromValue ? new Date(dateFromValue) : null;
+      let dateTo = dateToValue ? new Date(dateToValue) : null;
+    
+      const tableBody = document.getElementById('data-table');
+      const tr = tableBody.getElementsByTagName('tr');
+      let totalCount = 0;
+    
       for (let i = 0; i < tr.length; i++) {
         const tds = tr[i].getElementsByTagName('td');
-        if (!tds.length) continue; // lanjut ke baris berikutnya jika tidak ada sel data (td)
-
-        // 1. Cek Filter Global (cari teks di semua kolom)
-        // ----------------------------
-        if (tanggalText.toUpperCase().indexOf(filterValue) > -1 ||
-            cabangText.indexOf(filterValue) > -1 ||
-            tds[2].textContent.trim().toUpperCase().indexOf(filterValue) > -1 ||
-            tds[3].textContent.trim().toUpperCase().indexOf(filterValue) > -1 ||
-            tds[4].textContent.trim().toUpperCase().indexOf(filterValue) > -1 ||
-            tds[5].textContent.trim().toUpperCase().indexOf(filterValue) > -1 ||
-            tds[6].textContent.trim().toUpperCase().indexOf(filterValue) > -1 ||
-            tds[7].textContent.trim().toUpperCase().indexOf(filterValue) > -1) {
-          tr[i].style.display = '';
+        if (tds.length < 8) continue; // Pastikan baris memiliki semua kolom
+        
+        // Ambil nilai dari setiap kolom
+        const tanggalText = tds[0].textContent.trim();
+        const cabangText = tds[1].textContent.trim().toUpperCase();
+    
+        // Cek filter global (mencari di semua kolom)
+        if (
+          tanggalText.toUpperCase().indexOf(filterValue) > -1 ||
+          cabangText.indexOf(filterValue) > -1 ||
+          tds[2].textContent.trim().toUpperCase().indexOf(filterValue) > -1 ||
+          tds[3].textContent.trim().toUpperCase().indexOf(filterValue) > -1 ||
+          tds[4].textContent.trim().toUpperCase().indexOf(filterValue) > -1 ||
+          tds[5].textContent.trim().toUpperCase().indexOf(filterValue) > -1 ||
+          tds[6].textContent.trim().toUpperCase().indexOf(filterValue) > -1 ||
+          tds[7].textContent.trim().toUpperCase().indexOf(filterValue) > -1
+        ) {
+          // Cek filter tanggal jika nilai dateFrom dan dateTo ada
+          let showRow = true;
+          if (dateFrom || dateTo) {
+            // Konversi tanggal dari teks (format dd/mm/yyyy) ke objek Date
+            const parts = tanggalText.split('/');
+            if (parts.length === 3) {
+              const rowDate = new Date(parts[2], parts[1] - 1, parts[0]);
+              if (dateFrom && rowDate < dateFrom) {
+                showRow = false;
+              }
+              if (dateTo && rowDate > dateTo) {
+                showRow = false;
+              }
+            }
+          }
+          // Cek filter cabang
+          if (cabangValue && cabangText.indexOf(cabangValue) === -1) {
+            showRow = false;
+          }
+    
+          if (showRow) {
+            tr[i].style.display = '';
+            totalCount++;
+          } else {
+            tr[i].style.display = 'none';
+          }
         } else {
           tr[i].style.display = 'none';
-          continue; // lanjut ke baris berikutnya jika tidak sesuai
         }
-
-        // 2. Cek Filter Date (From & To)
-        // ----------------------------
-        let rowDate = new Date(tanggalText.split('/').reverse().join('-')); // konversi ke format "YYYY-MM-DD"
-
-        if (dateFrom && rowDate < dateFrom) {
-          tr[i].style.display = 'none';
-          continue; // lanjut ke baris berikutnya jika tidak sesuai
-        }
-
-        if (dateTo && rowDate > dateTo) {
-          tr[i].style.display = 'none';
-          continue; // lanjut ke baris berikutnya jika tidak sesuai
-        }
-
-        // 3. Cek Filter Cabang
-        // ----------------------------
-        if (cabangValue && cabangText.indexOf(cabangValue) === -1) {
-          tr[i].style.display = 'none';
-          continue; // lanjut ke baris berikutnya jika tidak sesuai
-        }
-
-        // Jika berhasil melewati semua filter, tampilkan baris
-        tr[i].style.display = '';
       }
+    
+      updateTotalData(totalCount);
     }
-
-    // Panggil fungsi utama untuk mengambil dan menampilkan data
+    
+    // Fungsi untuk menampilkan total data yang tampil
+    function updateTotalData(totalCount = 0) {
+      const totalDataElement = document.getElementById('totalData');
+      totalDataElement.textContent = `Total Data: ${totalCount}`;
+    }
+    
+    // Panggil fungsi untuk mengambil data saat halaman dimuat
     getDataFromSheet();
   </script>
 </body>
