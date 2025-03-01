@@ -4,107 +4,37 @@
   <meta charset="UTF-8">
   <title>Form Berita Acara</title>
   <style>
-    * {
-      font-family: Arial, sans-serif;
-    }
-    body {
-      margin: 0;
-      padding: 0;
-    }
+    * { font-family: Arial, sans-serif; }
+    body { margin: 0; padding: 0; }
     .container {
-      width: 800px;
-      margin: 10px auto; /* Mengatur margin agar judul lebih "naik" */
-      padding: 20px;
-      border: 1px solid #000;
+      width: 800px; margin: 10px auto; padding: 20px; border: 1px solid #000;
     }
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      margin-bottom: 10px;
-    }
-    table td, table th {
-      vertical-align: top;
-    }
-    .header-table td {
-      border: none;
-    }
-    .title {
-      text-align: center;
-      margin: 0;
-      padding: 0;
-    }
-    /* Membuat h1 agar judul lebih menonjol */
-    h1.title {
-      font-size: 24px;
-      margin-top: 0;
-      margin-bottom: 5px;
-    }
-    .section-title {
-      font-weight: bold;
-      margin-top: 10px;
-      margin-bottom: 5px;
-    }
-    /* Tabel tanda tangan dengan border */
+    table { width: 100%; border-collapse: collapse; margin-bottom: 10px; }
+    table td, table th { vertical-align: top; }
+    .header-table td { border: none; }
+    .title { text-align: center; margin: 0; padding: 0; }
+    h1.title { font-size: 24px; margin-top: 0; margin-bottom: 5px; }
+    .section-title { font-weight: bold; margin-top: 10px; margin-bottom: 5px; }
     .signature-table {
-      border: 1px solid #000;
-      border-collapse: collapse;
-      margin-bottom: 10px;
+      border: 1px solid #000; border-collapse: collapse; margin-bottom: 10px;
     }
     .signature-table th, .signature-table td {
-      border: 1px solid #000;
-      text-align: center;
-      vertical-align: top;
-      padding: 8px;
+      border: 1px solid #000; text-align: center; vertical-align: top; padding: 8px;
     }
-    .action-buttons {
-      text-align: center;
-      margin-top: 20px;
-    }
+    .action-buttons { text-align: center; margin-top: 20px; }
     .action-buttons button {
-      font-size: 14px;
-      padding: 8px 12px;
-      margin: 0 5px;
-      cursor: pointer;
+      font-size: 14px; padding: 8px 12px; margin: 0 5px; cursor: pointer;
     }
-    hr {
-      margin: 10px 0;
-    }
-    input[type="text"],
-    input[type="date"],
-    textarea {
-      font-size: 14px;
-    }
-    textarea {
-      resize: vertical;
-      width: 100%;
-    }
-    .label {
-      margin-right: 1px;
-      font-weight: bold;
-    }
-    .input-spacing {
-      margin-left: 5px;
-      margin-right: 15px;
-    }
-    /* CSS untuk tampilan cetak */
-    @page {
-      size: A4;
-      margin: 10mm;
-    }
+    hr { margin: 10px 0; }
+    input[type="text"], input[type="date"], textarea { font-size: 14px; }
+    textarea { resize: vertical; width: 100%; }
+    .label { margin-right: 1px; font-weight: bold; }
+    .input-spacing { margin-left: 5px; margin-right: 15px; }
+    @page { size: A4; margin: 10mm; }
     @media print {
-      .container {
-        width: 100%;
-        margin: 0;
-        padding: 10mm;
-        border: none;
-        page-break-after: avoid;
-      }
-      body {
-        font-size: 12px;
-      }
-      .action-buttons {
-        display: none;
-      }
+      .container { width: 100%; margin: 0; padding: 10mm; border: none; page-break-after: avoid; }
+      body { font-size: 12px; }
+      .action-buttons { display: none; }
     }
   </style>
 </head>
@@ -117,7 +47,6 @@
     <table class="header-table">
       <tr>
         <td style="width: 30%;">
-          <!-- Pastikan file gambar sudah mendukung CORS jika diakses melalui server -->
           <img src="logo.png" alt="Logo Perusahaan" style="width: 150px;" crossOrigin="anonymous">
         </td>
         <td style="text-align: right;">
@@ -138,11 +67,11 @@
     <!-- Paragraf Pembuka -->
     <p>
       Telah diadakan Pemeriksaan Kas pada 
-      <input type="text" name="nama_perusahaan" placeholder="Nama Perusahaan" style="width: 250px;" class="input-spacing"> 
+      <input type="text" name="nama_perusahaan" placeholder="Nama Perusahaan" style="width: 250px;" class="input-spacing">
       cabang 
-      <input type="text" name="nama_cabang" placeholder="Nama Cabang" style="width: 150px;" class="input-spacing"> 
+      <input type="text" name="nama_cabang" placeholder="Nama Cabang" style="width: 150px;" class="input-spacing">
       pada hari 
-      <input type="text" name="hari" style="width: 80px;" class="input-spacing">, 
+      <input type="text" name="hari" style="width: 80px;" class="input-spacing">,
       tanggal 
       <input type="date" name="tanggal_pemeriksaan" style="width: 150px;" class="input-spacing">
     </p>
@@ -217,27 +146,31 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 
 <script>
-  // Fungsi untuk submit data ke Google Sheets melalui Google Apps Script
+  // Fungsi submit form ke Google Sheets via Google Apps Script
   async function submitForm(event) {
-    event.preventDefault(); // Mencegah form submit default
+    event.preventDefault(); // Cegah form submit default
 
-    // Kumpulkan data dari form
     const form = document.getElementById('beritaAcaraForm');
     const formData = new FormData(form);
     const data = {};
-    formData.forEach((value, key) => {
-      data[key] = value;
-    });
+    formData.forEach((value, key) => { data[key] = value; });
 
-    // URL Web App Google Apps Script (ganti dengan URL Anda)
+    // URL endpoint Google Apps Script (pastikan URL dan deployment sudah benar)
     const scriptURL = 'https://script.google.com/macros/s/AKfycbyfewsXlPJfJ2Lf8RPBoZr-OM_zReST-UMYLtw518Ha9iuZX14F1lu83KpQbf7CaU1P/exec';
 
     try {
       const response = await fetch(scriptURL, {
         method: 'POST',
-        body: JSON.stringify(data),
-        headers: { 'Content-Type': 'application/json' }
+        mode: 'cors', // Memastikan permintaan lintas domain diizinkan
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data)
       });
+      
+      // Jika respons tidak OK, lempar error
+      if (!response.ok) {
+        throw new Error('Network response was not ok');
+      }
+      
       const result = await response.json();
       if (result.status === "success") {
         alert("Data berhasil disimpan!");
@@ -246,22 +179,21 @@
         alert("Terjadi kesalahan: " + result.message);
       }
     } catch (error) {
+      console.error("Fetch error:", error);
       alert("Error: " + error);
     }
   }
 
-  // Mengaitkan event submit pada form
   document.getElementById('beritaAcaraForm').addEventListener('submit', submitForm);
 
   // Fungsi Save as PDF
   async function saveAsPDF() {
     try {
-      console.log("Save as PDF dimulai...");
       const { jsPDF } = window.jspdf;
       const content = document.getElementById('content');
-      const canvas = await html2canvas(content, { 
-        scale: 2, 
-        useCORS: true, 
+      const canvas = await html2canvas(content, {
+        scale: 2,
+        useCORS: true,
         backgroundColor: '#fff',
         allowTaint: false,
         logging: true
@@ -271,7 +203,6 @@
       const pdfWidth = pdf.internal.pageSize.getWidth();
       const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
       pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight);
-      console.log("PDF berhasil dibuat, membuka di tab baru...");
       pdf.output('dataurlnewwindow');
     } catch (error) {
       console.error("Error pada saveAsPDF:", error);
@@ -281,8 +212,8 @@
   // Fungsi Save as Word
   function saveAsWord() {
     const content = document.getElementById('content').innerHTML;
-    const header = "<html xmlns:o='urn:schemas-microsoft-com:office:office' "+
-                   "xmlns:w='urn:schemas-microsoft-com:office:word' "+
+    const header = "<html xmlns:o='urn:schemas-microsoft-com:office:office' " +
+                   "xmlns:w='urn:schemas-microsoft-com:office:word' " +
                    "xmlns='http://www.w3.org/TR/REC-html40'><head><meta charset='utf-8'><title>Export HTML to Word Document</title></head><body>";
     const footer = "</body></html>";
     const sourceHTML = header + content + footer;
@@ -299,8 +230,8 @@
   // Fungsi Save as Excel
   function saveAsExcel() {
     const content = document.getElementById('content').innerHTML;
-    const header = "<html xmlns:o='urn:schemas-microsoft-com:office:office' "+
-                   "xmlns:x='urn:schemas-microsoft-com:office:excel' "+
+    const header = "<html xmlns:o='urn:schemas-microsoft-com:office:office' " +
+                   "xmlns:x='urn:schemas-microsoft-com:office:excel' " +
                    "xmlns='http://www.w3.org/TR/REC-html40'><head><meta charset='utf-8'><title>Export HTML to Excel Document</title></head><body>";
     const footer = "</body></html>";
     const sourceHTML = header + content + footer;
