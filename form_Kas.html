@@ -1,0 +1,319 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <title>Form Berita Acara</title>
+  <style>
+    * {
+      font-family: Arial, sans-serif;
+    }
+    body {
+      margin: 0;
+      padding: 0;
+    }
+    .container {
+      width: 800px;
+      margin: 10px auto; /* Mengatur margin agar judul lebih "naik" */
+      padding: 20px;
+      border: 1px solid #000;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-bottom: 10px;
+    }
+    table td, table th {
+      vertical-align: top;
+    }
+    .header-table td {
+      border: none;
+    }
+    .title {
+      text-align: center;
+      margin: 0;
+      padding: 0;
+    }
+    /* Membuat h1 agar judul lebih menonjol */
+    h1.title {
+      font-size: 24px;
+      margin-top: 0;
+      margin-bottom: 5px;
+    }
+    .section-title {
+      font-weight: bold;
+      margin-top: 10px;
+      margin-bottom: 5px;
+    }
+    /* Tabel tanda tangan dengan border */
+    .signature-table {
+      border: 1px solid #000;
+      border-collapse: collapse;
+      margin-bottom: 10px;
+    }
+    .signature-table th, .signature-table td {
+      border: 1px solid #000;
+      text-align: center;
+      vertical-align: top;
+      padding: 8px;
+    }
+    .action-buttons {
+      text-align: center;
+      margin-top: 20px;
+    }
+    .action-buttons button {
+      font-size: 14px;
+      padding: 8px 12px;
+      margin: 0 5px;
+      cursor: pointer;
+    }
+    hr {
+      margin: 10px 0;
+    }
+    input[type="text"],
+    input[type="date"],
+    textarea {
+      font-size: 14px;
+    }
+    textarea {
+      resize: vertical;
+      width: 100%;
+    }
+    .label {
+      margin-right: 1px;
+      font-weight: bold;
+    }
+    .input-spacing {
+      margin-left: 5px;
+      margin-right: 15px;
+    }
+    /* CSS untuk tampilan cetak */
+    @page {
+      size: A4;
+      margin: 10mm;
+    }
+    @media print {
+      .container {
+        width: 100%;
+        margin: 0;
+        padding: 10mm;
+        border: none;
+        page-break-after: avoid;
+      }
+      body {
+        font-size: 12px;
+      }
+      .action-buttons {
+        display: none;
+      }
+    }
+  </style>
+</head>
+<body>
+
+<!-- Form dimulai -->
+<form id="beritaAcaraForm">
+  <div class="container" id="content">
+    <!-- Header -->
+    <table class="header-table">
+      <tr>
+        <td style="width: 30%;">
+          <!-- Pastikan file gambar sudah mendukung CORS jika diakses melalui server -->
+          <img src="logo.png" alt="Logo Perusahaan" style="width: 150px;" crossOrigin="anonymous">
+        </td>
+        <td style="text-align: right;">
+          <strong>PT. xxxxxxxxxxxxx</strong><br>
+          <span class="label">No. BA:</span>
+          <input type="text" name="no_ba" style="width: 100px;" class="input-spacing">
+          <br>
+          <span class="label">Tanggal:</span>
+          <input type="date" name="tanggal" style="width: 150px;" class="input-spacing">
+        </td>
+      </tr>
+    </table>
+
+    <!-- Judul Berita Acara -->
+    <h1 class="title">BERITA ACARA</h1>
+    <hr>
+
+    <!-- Paragraf Pembuka -->
+    <p>
+      Telah diadakan Pemeriksaan Kas pada 
+      <input type="text" name="nama_perusahaan" placeholder="Nama Perusahaan" style="width: 250px;" class="input-spacing"> 
+      cabang 
+      <input type="text" name="nama_cabang" placeholder="Nama Cabang" style="width: 150px;" class="input-spacing"> 
+      pada hari 
+      <input type="text" name="hari" style="width: 80px;" class="input-spacing">, 
+      tanggal 
+      <input type="date" name="tanggal_pemeriksaan" style="width: 150px;" class="input-spacing">
+    </p>
+
+    <!-- Disaksikan oleh -->
+    <p>Dengan disaksikan oleh:</p>
+    <ol>
+      <li><input type="text" name="saksi_1" placeholder="Nama saksi 1" style="width: 300px;"></li>
+      <li><input type="text" name="saksi_2" placeholder="Nama saksi 2" style="width: 300px;"></li>
+      <li><input type="text" name="saksi_3" placeholder="Nama saksi 3" style="width: 300px;"></li>
+      <li><input type="text" name="saksi_4" placeholder="Nama saksi 4" style="width: 300px;"></li>
+    </ol>
+
+    <!-- Rincian Kejadian -->
+    <div class="section-title">Rincian Kejadian</div>
+    <ol>
+      <li><textarea name="rincian_1" rows="2" placeholder="Uraian kejadian 1"></textarea></li>
+      <li><textarea name="rincian_2" rows="2" placeholder="Uraian kejadian 2"></textarea></li>
+    </ol>
+
+    <!-- Tanggapan Manajemen -->
+    <div class="section-title">Tanggapan Manajemen Atas Permasalahan</div>
+    <textarea name="tanggapan_manajemen" rows="4" placeholder="Tanggapan manajemen"></textarea>
+
+    <!-- Recomendasi -->
+    <div class="section-title">Recomendasi</div>
+    <textarea name="Recomendasi" rows="4" placeholder="Recomendasi"></textarea>
+    <br>
+
+    <!-- Tabel Tanda Tangan -->
+    <table class="signature-table">
+      <tr>
+        <th style="width: 25%;">Saksi</th>
+        <th style="width: 25%;">Diakui Oleh</th>
+        <th style="width: 25%;">Disetujui Oleh</th>
+        <th style="width: 25%;">Mengetahui</th>
+      </tr>
+      <tr>
+        <td>
+          <div style="border: 1px solid #000; height: 60px; margin-bottom:5px;"></div>
+          <input type="text" name="jabatan_saksi" placeholder="Jabatan" style="width: 90%;">
+        </td>
+        <td>
+          <div style="border: 1px solid #000; height: 60px; margin-bottom:5px;"></div>
+          <input type="text" name="jabatan_diakui" placeholder="Jabatan" style="width: 90%;">
+        </td>
+        <td>
+          <div style="border: 1px solid #000; height: 60px; margin-bottom:5px;"></div>
+          <input type="text" name="jabatan_disetujui" placeholder="Jabatan" style="width: 90%;">
+        </td>
+        <td>
+          <div style="border: 1px solid #000; height: 60px; margin-bottom:5px;"></div>
+          <input type="text" name="jabatan_mengetahui" placeholder="Jabatan" style="width: 90%;">
+        </td>
+      </tr>
+    </table>
+  </div>
+
+  <!-- Tombol Aksi -->
+  <div class="action-buttons">
+    <button type="button" onclick="window.print()">Print</button>
+    <button type="button" onclick="saveAsPDF()">Save as PDF</button>
+    <button type="button" onclick="saveAsWord()">Save as Word</button>
+    <button type="button" onclick="saveAsExcel()">Save as Excel</button>
+    <button type="submit">Submit Data</button>
+  </div>
+</form>
+<!-- Akhir Form -->
+
+<!-- Library untuk PDF: html2canvas dan jsPDF -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+
+<script>
+  // Fungsi untuk submit data ke Google Sheets melalui Google Apps Script
+  async function submitForm(event) {
+    event.preventDefault(); // Mencegah form submit default
+
+    // Kumpulkan data dari form
+    const form = document.getElementById('beritaAcaraForm');
+    const formData = new FormData(form);
+    const data = {};
+    formData.forEach((value, key) => {
+      data[key] = value;
+    });
+
+    // URL Web App Google Apps Script (ganti dengan URL Anda)
+    const scriptURL = 'https://script.google.com/macros/s/AKfycbyfewsXlPJfJ2Lf8RPBoZr-OM_zReST-UMYLtw518Ha9iuZX14F1lu83KpQbf7CaU1P/exec';
+
+    try {
+      const response = await fetch(scriptURL, {
+        method: 'POST',
+        body: JSON.stringify(data),
+        headers: { 'Content-Type': 'application/json' }
+      });
+      const result = await response.json();
+      if (result.status === "success") {
+        alert("Data berhasil disimpan!");
+        form.reset();
+      } else {
+        alert("Terjadi kesalahan: " + result.message);
+      }
+    } catch (error) {
+      alert("Error: " + error);
+    }
+  }
+
+  // Mengaitkan event submit pada form
+  document.getElementById('beritaAcaraForm').addEventListener('submit', submitForm);
+
+  // Fungsi Save as PDF
+  async function saveAsPDF() {
+    try {
+      console.log("Save as PDF dimulai...");
+      const { jsPDF } = window.jspdf;
+      const content = document.getElementById('content');
+      const canvas = await html2canvas(content, { 
+        scale: 2, 
+        useCORS: true, 
+        backgroundColor: '#fff',
+        allowTaint: false,
+        logging: true
+      });
+      const imgData = canvas.toDataURL('image/png');
+      const pdf = new jsPDF('p', 'mm', 'a4');
+      const pdfWidth = pdf.internal.pageSize.getWidth();
+      const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
+      pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight);
+      console.log("PDF berhasil dibuat, membuka di tab baru...");
+      pdf.output('dataurlnewwindow');
+    } catch (error) {
+      console.error("Error pada saveAsPDF:", error);
+    }
+  }
+
+  // Fungsi Save as Word
+  function saveAsWord() {
+    const content = document.getElementById('content').innerHTML;
+    const header = "<html xmlns:o='urn:schemas-microsoft-com:office:office' "+
+                   "xmlns:w='urn:schemas-microsoft-com:office:word' "+
+                   "xmlns='http://www.w3.org/TR/REC-html40'><head><meta charset='utf-8'><title>Export HTML to Word Document</title></head><body>";
+    const footer = "</body></html>";
+    const sourceHTML = header + content + footer;
+    const blob = new Blob(['\ufeff', sourceHTML], { type: 'application/msword' });
+    const url = 'data:application/vnd.ms-word;charset=utf-8,' + encodeURIComponent(sourceHTML);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = 'BeritaAcara.doc';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  }
+
+  // Fungsi Save as Excel
+  function saveAsExcel() {
+    const content = document.getElementById('content').innerHTML;
+    const header = "<html xmlns:o='urn:schemas-microsoft-com:office:office' "+
+                   "xmlns:x='urn:schemas-microsoft-com:office:excel' "+
+                   "xmlns='http://www.w3.org/TR/REC-html40'><head><meta charset='utf-8'><title>Export HTML to Excel Document</title></head><body>";
+    const footer = "</body></html>";
+    const sourceHTML = header + content + footer;
+    const blob = new Blob([sourceHTML], { type: 'application/vnd.ms-excel' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = 'BeritaAcara.xls';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  }
+</script>
+
+</body>
+</html>
