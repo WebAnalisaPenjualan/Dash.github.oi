@@ -8,12 +8,22 @@
   <link rel="stylesheet" href="style.css">
   <!-- Font Modern -->
   <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,400,500">
+  <!-- Tambahkan Chart.js -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <style>
+    /* Styling umum */
+    body {
+      font-family: 'Roboto', sans-serif;
+      margin: 0;
+      padding: 0;
+    }
+    
     /* Styling untuk tabel */
     table {
       width: 100%;
       border-collapse: collapse;
       margin: 20px 0;
+      overflow-x: auto;
     }
     table, th, td {
       border: 1px solid #ccc;
@@ -21,10 +31,15 @@
     th, td {
       padding: 8px 12px;
       text-align: left;
+      transition: background-color 0.3s ease;
     }
     th {
       background: #f4f4f4;
     }
+    table tr:hover {
+      background-color: #f9f9f9;
+    }
+    
     /* Footer Styling */
     footer {
       background: #3949ab;
@@ -37,42 +52,137 @@
       color: #ffca28;
       margin: 0 5px;
     }
+    
     /* Input filter */
     #filterInput, #dateFrom, #dateTo, #cabangFilter {
-      margin: 5px 0;
+      margin: 20px 0;
       padding: 8px;
       border: 1px solid #ccc;
       border-radius: 4px;
+      width: 100%;
+      max-width: 500px;
     }
     #filterSection {
       margin: 20px 0;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      align-items: center;
+      justify-content: center;
     }
     #filterSection label {
       margin-right: 10px;
     }
+    
     /* Styling untuk total data */
     #totalData {
       margin-top: 10px;
       font-weight: bold;
+      text-align: center;
+    }
+    
+    /* Styling untuk Summary Cards */
+    #summaryCards {
+      display: flex;
+      flex-direction: row;
+      gap: 20px;
+      justify-content: center;
+      flex-wrap: wrap;
+      margin: 40px 0;
+    }
+    .card {
+      background: #fff;
+      border: 1px solid #ccc;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+      border-radius: 8px;
+      padding: 15px;
+      width: 90%;
+      max-width: 300px;
+      text-align: center;
+      transition: transform 0.3s ease;
+    }
+    .card:hover {
+      transform: scale(1.02);
+    }
+    .card h4 {
+      margin: 0 0 10px;
+      font-size: 16px;
+    }
+    .card p {
+      margin: 0;
+      font-size: 14px;
+    }
+    
+    /* Styling untuk kontainer grafik */
+    #chartContainer {
+      margin: 40px 0;
+      display: flex;
+      flex-direction: row;
+      gap: 20px;
+      justify-content: center;
+      align-items: flex-start;
+      flex-wrap: wrap;
+    }
+    /* Wrapper untuk setiap chart */
+    .chartWrapper {
+      background-color: #fff;
+      border: 1px solid #ccc;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+      border-radius: 8px;
+      padding: 15px;
+      width: 90%;
+      max-width: 500px;
+      transition: transform 0.3s ease;
+    }
+    .chartWrapper:hover {
+      transform: scale(1.01);
+    }
+    .chartWrapper h3 {
+      margin-top: 0;
+      font-size: 16px;
+      text-align: center;
+    }
+    .chartWrapper canvas {
+      width: 100%;
+      height: auto;
+      background: #fff;
+      border: 1px solid #ccc;
+      padding: 10px;
+    }
+    
+    /* Mobile-friendly media query */
+    @media (max-width: 768px) {
+      #chartContainer {
+        flex-direction: column;
+      }
+      .chartWrapper {
+        width: 90%;
+        max-width: 900px;
+      }
+      #summaryCards {
+        flex-direction: column;
+        align-items: center;
+      }
+      th, td {
+        font-size: 14px;
+      }
     }
   </style>
 </head>
 <body>
   <header>
-    <h1>Detail</h1>
+    <h1>Performa SPV</h1>
     <nav>
       <a href="index.html">Kembali ke Dashboard</a>
     </nav>
   </header>
   <main>
-    <!-- Bagian untuk semua filter -->
+    <!-- Bagian untuk filter -->
     <div id="filterSection">
-      <!-- Filter Global (cari teks di semua kolom) -->
       <label>
         Filter Teks:
         <input type="text" id="filterInput" placeholder="Cari data...">
       </label>
-      <!-- Filter Date From dan Date To -->
       <label>
         Date From:
         <input type="date" id="dateFrom">
@@ -81,14 +191,33 @@
         Date To:
         <input type="date" id="dateTo">
       </label>
-      <!-- Filter kolom Cabang -->
       <label>
         Cabang:
         <input type="text" id="cabangFilter" placeholder="Nama Cabang...">
       </label>
     </div>
+    
+    <!-- Summary Cards: Dipindahkan di atas grafik -->
+    <div id="summaryCards"></div>
+    
+    <!-- Kontainer untuk grafik -->
+    <div id="chartContainer">
+      <div class="chartWrapper">
+        <h3>Jumlah Supervisor/Field</h3>
+        <canvas id="supervisorChart"></canvas>
+      </div>
+      <div class="chartWrapper">
+        <h3>Rata-rata Diskon Internal</h3>
+        <canvas id="pieChart"></canvas>
+      </div>
+      <!-- Grafik baru: Total Penjualan Berdasarkan Pembayaran -->
+      <div class="chartWrapper">
+        <h3>Total Penjualan Berdasarkan Pembayaran</h3>
+        <canvas id="paymentChart"></canvas>
+      </div>
+    </div>
 
-    <!-- Tabel dengan header yang telah ditentukan -->
+    <!-- Tabel Data -->
     <table>
       <thead>
         <tr>
@@ -100,6 +229,8 @@
           <th>Nama Customer</th>
           <th>Kecamatan</th>
           <th>Pembayaran</th>
+          <th>Diskon Internal</th>
+          <th>Diskon Eksternal</th>
         </tr>
       </thead>
       <tbody id="data-table">
@@ -107,7 +238,6 @@
       </tbody>
     </table>
 
-    <!-- Tampilan total data -->
     <div id="totalData"></div>
   </main>
   <footer>
@@ -117,33 +247,82 @@
       <a href="#">Twitter</a> | 
       <a href="#">Instagram</a>
     </p>
-    <p>Sumber Data: Google Sheets &amp; API. Info lebih lanjut hubungi <a href="mailto:agungsamodraa@gmail.com">agungsamodraa@gmail.com</a></p>
+    <p>Sumber Data: Google Sheets &amp; API. Info lebih lanjut hubungi 
+      <a href="mailto:agungsamodraa@gmail.com">agungsamodraa@gmail.com</a>
+    </p>
   </footer>
   
   <script>
-    // Fungsi untuk mengambil data dari URL web Apps Script
+    let supervisorChart;
+    let pieChart;
+    let paymentChart; // Variabel untuk grafik baru
+
+    // Fungsi untuk format angka: mengubah angka menjadi string dengan comma sebagai pemisah ribuan dan titik sebagai pemisah desimal.
+    function formatNumber(num) {
+      return num.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    }
+
+    // Fungsi untuk mengupdate summary cards berdasarkan data supervisorCount (jumlah transaksi per Supervisor/Field)
+    function updateSummaryCards(supervisorCount) {
+      let maxSupervisor = '';
+      let maxSales = -Infinity;
+      let minSupervisor = '';
+      let minSales = Infinity;
+      let sumSales = 0;
+      let count = 0;
+      
+      for (const sup in supervisorCount) {
+        let sales = supervisorCount[sup];
+        sumSales += sales;
+        count++;
+        if (sales > maxSales) {
+          maxSales = sales;
+          maxSupervisor = sup;
+        }
+        if (sales < minSales) {
+          minSales = sales;
+          minSupervisor = sup;
+        }
+      }
+      
+      let avgSales = (count > 0) ? (sumSales / count) : 0;
+      
+      const summaryCards = document.getElementById('summaryCards');
+      summaryCards.innerHTML = `
+        <div class="card">
+          <h4>Penjualan Terbanyak</h4>
+          <p>${maxSupervisor}</p>
+          <p>${maxSales} Transaksi</p>
+        </div>
+        <div class="card">
+          <h4>Penjualan Terendah</h4>
+          <p>${minSupervisor}</p>
+          <p>${minSales} Transaksi</p>
+        </div>
+        <div class="card">
+          <h4>Rata-rata Penjualan</h4>
+          <p>${formatNumber(avgSales)} Transaksi</p>
+        </div>
+      `;
+    }
+
     function getDataFromSheet() {
-      // Ganti URL berikut dengan URL web Apps Script Anda yang telah dipublish
       const sheetUrl = 'https://script.google.com/macros/s/AKfycbwV4ZymIjEwWDxEBMZYZ4Y65WpUDGu4ijSQL6H0RYp6BCapNugYy5cPI9lGOQscTKm4/exec';
       
       fetch(sheetUrl)
         .then(response => response.json())
         .then(data => {
           console.log("Data diterima:", data);
-          // Jika data diambil dari properti DP_1, gunakan data.DP_1
           let rows = data.DP_1 || data;
-          
-          // Asumsikan baris pertama berisi header, kita lewati
           let tableContent = '';
           for (let i = 1; i < rows.length; i++) {
             let row = rows[i];
-            
-            // Parse tanggal di kolom [2] (sesuaikan dengan kolom sebenarnya)
             let rawDate = row[2] || ''; 
             let formattedDate = '';
             if (rawDate) {
               let dateObj = new Date(rawDate);
               if (!isNaN(dateObj.getTime())) {
+                dateObj.setHours(0, 0, 0, 0);
                 let day = String(dateObj.getDate()).padStart(2, '0');
                 let month = String(dateObj.getMonth() + 1).padStart(2, '0');
                 let year = dateObj.getFullYear();
@@ -152,33 +331,34 @@
                 formattedDate = rawDate;
               }
             }
+            let diskonInternal = (parseFloat(row[20]) || 0) + (parseFloat(row[24]) || 0) + (parseFloat(row[38]) || 0);
+            let diskonEksternal = (parseFloat(row[21]) || 0) + (parseFloat(row[22]) || 0) + (parseFloat(row[23]) || 0); 
+            let formattedDiskonInternal = formatNumber(diskonInternal);
+            let formattedDiskonEksternal = formatNumber(diskonEksternal);
             
-            // Bangun isi tabel (sesuaikan indeks kolom sesuai data Anda)
             tableContent += '<tr>';
-            tableContent += `<td>${formattedDate}</td>`;     // Tanggal Jual
-            tableContent += `<td>${row[1] || ''}</td>`;         // Cabang
-            tableContent += `<td>${row[63] || ''}</td>`;        // Wilayah
-            tableContent += `<td>${row[44] || ''}</td>`;        // Supervisor/Field
-            tableContent += `<td>${row[36] || ''}</td>`;        // Salesman
-            tableContent += `<td>${row[9] || ''}</td>`;         // Nama Customer
-            tableContent += `<td>${row[12] || ''}</td>`;        // Kecamatan
-            tableContent += `<td>${row[33] || ''}</td>`;        // Pembayaran
+            tableContent += `<td>${formattedDate}</td>`;
+            tableContent += `<td>${row[1] || ''}</td>`;
+            tableContent += `<td>${row[63] || ''}</td>`;
+            tableContent += `<td>${row[44] || ''}</td>`;
+            tableContent += `<td>${row[36] || ''}</td>`;
+            tableContent += `<td>${row[9] || ''}</td>`;
+            tableContent += `<td>${row[12] || ''}</td>`;
+            tableContent += `<td>${row[33] || ''}</td>`;
+            tableContent += `<td>${formattedDiskonInternal}</td>`;
+            tableContent += `<td>${formattedDiskonEksternal}</td>`;
             tableContent += '</tr>';
           }
-          
-          // Masukkan data ke dalam tabel
           document.getElementById('data-table').innerHTML = tableContent;
-          // Inisialisasi filter setelah data dimuat
           initFilter();
-          // Hitung dan tampilkan total data awal (sebelum filter atau filter default)
           updateTotalData();
+          updateChart();
         })
         .catch(error => {
           console.error('Error loading data:', error);
         });
     }
     
-    // Inisialisasi event listener untuk filter
     function initFilter() {
       const filterInput = document.getElementById('filterInput');
       const dateFromInput = document.getElementById('dateFrom');
@@ -191,15 +371,16 @@
       cabangInput.addEventListener('keyup', applyFilters);
     }
     
-    // Fungsi untuk menerapkan filter dan menghitung total data yang tampil
     function applyFilters() {
       const filterValue = document.getElementById('filterInput').value.toUpperCase();
-      const dateFromValue = document.getElementById('dateFrom').value;  // "YYYY-MM-DD"
-      const dateToValue = document.getElementById('dateTo').value;      // "YYYY-MM-DD"
+      const dateFromValue = document.getElementById('dateFrom').value;
+      const dateToValue = document.getElementById('dateTo').value;
       const cabangValue = document.getElementById('cabangFilter').value.toUpperCase();
       
       let dateFrom = dateFromValue ? new Date(dateFromValue) : null;
       let dateTo = dateToValue ? new Date(dateToValue) : null;
+      if (dateFrom) dateFrom.setHours(0, 0, 0, 0);
+      if (dateTo) dateTo.setHours(0, 0, 0, 0);
     
       const tableBody = document.getElementById('data-table');
       const tr = tableBody.getElementsByTagName('tr');
@@ -207,13 +388,10 @@
     
       for (let i = 0; i < tr.length; i++) {
         const tds = tr[i].getElementsByTagName('td');
-        if (tds.length < 8) continue; // Pastikan baris memiliki semua kolom
-        
-        // Ambil nilai dari setiap kolom
+        if (tds.length < 10) continue;
         const tanggalText = tds[0].textContent.trim();
         const cabangText = tds[1].textContent.trim().toUpperCase();
     
-        // Cek filter global (mencari di semua kolom)
         if (
           tanggalText.toUpperCase().indexOf(filterValue) > -1 ||
           cabangText.indexOf(filterValue) > -1 ||
@@ -222,24 +400,20 @@
           tds[4].textContent.trim().toUpperCase().indexOf(filterValue) > -1 ||
           tds[5].textContent.trim().toUpperCase().indexOf(filterValue) > -1 ||
           tds[6].textContent.trim().toUpperCase().indexOf(filterValue) > -1 ||
-          tds[7].textContent.trim().toUpperCase().indexOf(filterValue) > -1
+          tds[7].textContent.trim().toUpperCase().indexOf(filterValue) > -1 ||
+          tds[8].textContent.trim().toUpperCase().indexOf(filterValue) > -1 ||
+          tds[9].textContent.trim().toUpperCase().indexOf(filterValue) > -1
         ) {
-          // Cek filter tanggal jika nilai dateFrom dan dateTo ada
           let showRow = true;
           if (dateFrom || dateTo) {
-            // Konversi tanggal dari teks (format dd/mm/yyyy) ke objek Date
             const parts = tanggalText.split('/');
             if (parts.length === 3) {
               const rowDate = new Date(parts[2], parts[1] - 1, parts[0]);
-              if (dateFrom && rowDate < dateFrom) {
-                showRow = false;
-              }
-              if (dateTo && rowDate > dateTo) {
-                showRow = false;
-              }
+              rowDate.setHours(0, 0, 0, 0);
+              if (dateFrom && rowDate < dateFrom) showRow = false;
+              if (dateTo && rowDate > dateTo) showRow = false;
             }
           }
-          // Cek filter cabang
           if (cabangValue && cabangText.indexOf(cabangValue) === -1) {
             showRow = false;
           }
@@ -256,15 +430,174 @@
       }
     
       updateTotalData(totalCount);
+      updateChart();
     }
     
-    // Fungsi untuk menampilkan total data yang tampil
     function updateTotalData(totalCount = 0) {
       const totalDataElement = document.getElementById('totalData');
       totalDataElement.textContent = `Total Data: ${totalCount}`;
     }
     
-    // Panggil fungsi untuk mengambil data saat halaman dimuat
+    function updateChart() {
+      const tableRows = document.querySelectorAll('#data-table tr');
+      
+      // Grafik 1: Bar Chart untuk jumlah transaksi per Supervisor/Field
+      const supervisorCount = {};
+      tableRows.forEach(row => {
+        if (row.style.display === 'none') return;
+        const cells = row.getElementsByTagName('td');
+        if (cells.length >= 4) {
+          const supervisor = cells[3].textContent.trim();
+          if (supervisor) {
+            supervisorCount[supervisor] = (supervisorCount[supervisor] || 0) + 1;
+          }
+        }
+      });
+      const barLabels = Object.keys(supervisorCount);
+      const barDataValues = Object.values(supervisorCount);
+      
+      const ctx = document.getElementById('supervisorChart').getContext('2d');
+      if (!supervisorChart) {
+        supervisorChart = new Chart(ctx, {
+          type: 'bar',
+          data: {
+            labels: barLabels,
+            datasets: [{
+              label: 'Jumlah Supervisor/Field',
+              data: barDataValues,
+              backgroundColor: 'rgba(57, 105, 172, 0.6)',
+              borderColor: 'rgba(57, 105, 172, 1)',
+              borderWidth: 1
+            }]
+          },
+          options: {
+            responsive: true,
+            animation: { duration: 800 },
+            scales: {
+              y: {
+                beginAtZero: true,
+                ticks: { precision: 0 }
+              }
+            }
+          }
+        });
+      } else {
+        supervisorChart.data.labels = barLabels;
+        supervisorChart.data.datasets[0].data = barDataValues;
+        supervisorChart.update();
+      }
+      
+      // Grafik 2: Pie Chart untuk rata-rata Diskon Internal per Supervisor/Field
+      const discountSums = {};
+      const discountCounts = {};
+      tableRows.forEach(row => {
+        if (row.style.display === 'none') return;
+        const cells = row.getElementsByTagName('td');
+        if (cells.length >= 9) {
+          const supervisor = cells[3].textContent.trim();
+          const diskonInternalStr = cells[8].textContent.trim();
+          let diskonInternalVal = parseFloat(diskonInternalStr.replace(/,/g, ''));
+          if (supervisor) {
+            discountSums[supervisor] = (discountSums[supervisor] || 0) + diskonInternalVal;
+            discountCounts[supervisor] = (discountCounts[supervisor] || 0) + 1;
+          }
+        }
+      });
+      const pieLabels = Object.keys(discountSums);
+      const pieDataValues = pieLabels.map(label => discountSums[label] / discountCounts[label]);
+      
+      const pieCtx = document.getElementById('pieChart').getContext('2d');
+      if (!pieChart) {
+        pieChart = new Chart(pieCtx, {
+          type: 'pie',
+          data: {
+            labels: pieLabels,
+            datasets: [{
+              label: 'Rata-rata Diskon Internal',
+              data: pieDataValues,
+              backgroundColor: [
+                'rgba(255, 99, 132, 0.6)',
+                'rgba(54, 162, 235, 0.6)',
+                'rgba(255, 206, 86, 0.6)',
+                'rgba(75, 192, 192, 0.6)',
+                'rgba(153, 102, 255, 0.6)',
+                'rgba(255, 159, 64, 0.6)'
+              ],
+              borderColor: '#fff',
+              borderWidth: 1
+            }]
+          },
+          options: {
+            responsive: true,
+            animation: { duration: 800 },
+            plugins: {
+              tooltip: {
+                callbacks: {
+                  label: function(context) {
+                    let value = context.parsed;
+                    return context.label + ': ' + formatNumber(value);
+                  }
+                }
+              }
+            }
+          }
+        });
+      } else {
+        pieChart.data.labels = pieLabels;
+        pieChart.data.datasets[0].data = pieDataValues;
+        pieChart.update();
+      }
+      
+      // Grafik 3: Bar Chart untuk Total Penjualan Berdasarkan Pembayaran
+      const paymentCount = {};
+      tableRows.forEach(row => {
+        if (row.style.display === 'none') return;
+        const cells = row.getElementsByTagName('td');
+        if (cells.length >= 8) {
+          const paymentMethod = cells[7].textContent.trim();
+          if (paymentMethod) {
+            paymentCount[paymentMethod] = (paymentCount[paymentMethod] || 0) + 1;
+          }
+        }
+      });
+      const paymentLabels = Object.keys(paymentCount);
+      const paymentDataValues = Object.values(paymentCount);
+      
+      const paymentCtx = document.getElementById('paymentChart').getContext('2d');
+      if (!paymentChart) {
+        paymentChart = new Chart(paymentCtx, {
+          type: 'bar',
+          data: {
+            labels: paymentLabels,
+            datasets: [{
+              label: 'Total Penjualan',
+              data: paymentDataValues,
+              backgroundColor: 'rgba(75, 192, 192, 0.6)',
+              borderColor: 'rgba(75, 192, 192, 1)',
+              borderWidth: 1
+            }]
+          },
+          options: {
+            responsive: true,
+            animation: { duration: 800 },
+            scales: {
+              y: {
+                beginAtZero: true,
+                ticks: { precision: 0 }
+              }
+            }
+          }
+        });
+      } else {
+        paymentChart.data.labels = paymentLabels;
+        paymentChart.data.datasets[0].data = paymentDataValues;
+        paymentChart.update();
+      }
+      
+      // Update Summary Cards
+      updateSummaryCards(supervisorCount);
+    }
+    
     getDataFromSheet();
   </script>
 </body>
