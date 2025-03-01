@@ -42,7 +42,8 @@
       border-radius: 8px;
       padding: 15px;
       box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-      flex: 1 1 calc(33.33% - 15px);
+      /* Desktop: 3 card per baris (total 4 baris untuk 12 card) */
+      flex: 1 1 calc(13% - 15px);  
       text-align: center;
     }
     .card h3 {
@@ -84,7 +85,8 @@
       nav ul { flex-direction: column; gap: 10px; }
       #filterSection { flex-direction: column; align-items: stretch; }
       #filterSection select { width: 100%; }
-      .card { flex: 1 1 100%; }
+      /* Tablet: 2 card per baris */
+      .card { flex: 1 1 calc(50% - 15px); }
       #chartFlex { flex-direction: column; }
       #chartContainer, #pieChartContainer { flex: 1 1 100%; height: 300px; }
     }
@@ -93,6 +95,8 @@
       header h1 { font-size: 1.5em; }
       nav ul li a { font-size: 0.9em; }
       main { font-size: 0.9em; }
+      /* Smartphone: 1 card per baris */
+      .card { flex: 1 1 100%; }
     }
   </style>
   <!-- Sertakan Chart.js -->
@@ -104,13 +108,11 @@
     <nav>
       <ul>
         <li><a href="index.html">Dashboard</a></li>
-        <li><a href="COA.html">COA</a></li>
-        <li><a href="grafik.html">Grafik</a></li>
       </ul>
     </nav>
   </header>
   <main>
-    <h2>Analisis Biaya</h2>
+  
     <!-- Filter Section -->
     <div id="filterSection">
       <label for="filterCabang">Filter Cabang:</label>
@@ -314,11 +316,11 @@
       for (let i = 0; i < 12; i++) {
         let percentage;
         if (i === 0) {
-          percentage = 'N/A';
+          percentage = '0';
         } else {
           let prevTotal = monthlyTotals[i - 1];
           if (prevTotal === 0) {
-            percentage = 'N/A';
+            percentage = '0';
           } else {
             let diff = monthlyTotals[i] - prevTotal;
             let percentValue = ((diff / prevTotal) * 100).toFixed(2) + '%';
