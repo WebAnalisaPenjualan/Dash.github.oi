@@ -1,46 +1,100 @@
 <!DOCTYPE html>
-<html lang="id">
-<head>
-  <meta charset="UTF-8">
-  <title>Form Berita Acara</title>
-</head>
-<body>
-
-<form 
-  action="https://script.google.com/macros/s/AKfycbzCK8BfdpRcjXyhWTJCqevX-UZPDEkN_V4uN6WWj5tYgxpeo3WhlDd0zEci1efaZT93/exec"  <!-- Ganti dengan URL Web App Google Apps Script -->
-  method="POST"
-  target="_blank"  <!-- Supaya hasil submit terbuka di tab baru -->
->
-  <h1>BERITA ACARA</h1>
-  
-  <label>No. BA: 
-    <input type="text" name="no_ba">
-  </label><br><br>
-  
-  <label>Tanggal:
-    <input type="date" name="tanggal">
-  </label><br><br>
-  
-  <label>Nama Perusahaan:
-    <input type="text" name="nama_perusahaan">
-  </label><br><br>
-  
-  <label>Nama Cabang:
-    <input type="text" name="nama_cabang">
-  </label><br><br>
-  
-  <label>Hari:
-    <input type="text" name="hari">
-  </label><br><br>
-  
-  <label>Tanggal Pemeriksaan:
-    <input type="date" name="tanggal_pemeriksaan">
-  </label><br><br>
-  
-  <!-- Dan seterusnya untuk semua field lain... -->
-  
-  <button type="submit">Submit Data</button>
-</form>
-
-</body>
+<html>
+  <head>
+    <meta charset="UTF-8">
+    <title>Landing Page - Form Berita Acara</title>
+    <!-- Google Fonts (opsional, jika ingin tetap menggunakan font kustom) -->
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+    <style>
+      * {
+        box-sizing: border-box;
+      }
+      body {
+        font-family: 'Roboto', sans-serif;
+        background: #f2f4f7;
+        margin: 0;
+        padding: 0;
+        color: #333;
+      }
+      .container {
+        max-width: 900px;
+        margin: 60px auto;
+        padding: 40px;
+        background: #fff;
+        border-radius: 8px;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        text-align: center;
+      }
+      h1 {
+        margin-bottom: 20px;
+        font-size: 2.4em;
+        font-weight: 700;
+        color: #222;
+      }
+      p {
+        font-size: 1.1em;
+        margin-bottom: 30px;
+        color: #555;
+      }
+      .button-container {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: center;
+        gap: 20px;
+      }
+      .btn {
+        /* Gunakan tampilan sistem bawaan */
+        -webkit-appearance: button;
+        -moz-appearance: button;
+        appearance: button;
+        background-color: ButtonFace;
+        color: ButtonText;
+        border: 1px solid ButtonText;
+        padding: 14px 28px;
+        text-decoration: none;
+        border-radius: 4px;
+        font-size: 1em;
+        transition: background-color 0.3s ease, transform 0.2s ease;
+      }
+      .btn:hover {
+        background-color: Highlight;
+        color: HighlightText;
+        transform: translateY(-2px);
+      }
+      @media (max-width: 600px) {
+        .btn {
+          padding: 12px 20px;
+          font-size: 0.95em;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <h1>Selamat Datang di Form Berita Acara</h1>
+      <p>Pilih jenis form yang ingin Anda isi untuk memulai proses pemeriksaan.</p>
+      <div class="button-container">
+        <!-- Ganti DEPLOYMENT_ID dengan ID deployment web app Anda -->
+        <a class="btn" href="https://script.google.com/macros/s/AKfycbwYsNtbFeTb6_lzjHH7hRbtAXxVsin2n4z7G3bxjyA/dev">
+          Pemeriksaan Kas
+        </a>
+          <a class="btn" href="https://script.google.com/macros/s/AKfycbzwrORbBVjyVWBFdG6uNYIPJ7ZPnPTPasnVSmJoyU6yF5pIVc66qaAGT13FfodhNZCI/exec?jenis=kasbesar">
+          Pemeriksaan Kas Besar
+        </a>
+        <a class="btn" href="https://script.google.com/macros/s/AKfycbwYsNtbFeTb6_lzjHH7hRbtAXxVsin2n4z7G3bxjyA/dev?jenis=kaskecil">
+          Pemeriksaan Kas Kecil
+        </a>
+        <a class="btn" href="https://script.google.com/macros/s/AKfycbw3pnALPk7iEKmWKMKYx3i27JdBikORXKuqqy__4YgNctHD8WqQYVWA3mL85b3CgXDi/exec?jenis=hutang">
+          Pemeriksaan Hutang
+          </a>
+          <a class="btn" href="https://script.google.com/macros/s/AKfycbzwrORbBVjyVWBFdG6uNYIPJ7ZPnPTPasnVSmJoyU6yF5pIVc66qaAGT13FfodhNZCI/exec?jenis=piutang">
+            Pemeriksaan Piutang
+          </a>
+          <a class="btn" href="https://script.google.com/macros/s/AKfycbwYsNtbFeTb6_lzjHH7hRbtAXxVsin2n4z7G3bxjyA/dev?jenis=Asset">
+            Pemeriksaan Asset
+          </a>
+        </a>
+      </div>
+    </div>
+  </body>
 </html>
