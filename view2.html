@@ -88,7 +88,7 @@
       <ul>
         <li><a href="index.html">Dashboard</a></li>
         <li><a href="laporan.html">Laporan Transaksi</a></li>
-        <li><a href="setting.html">Setting</a></li>
+        <li><a href="tblance.html">Trial Balance</a></li>
       </ul>
     </nav>
   </header>
@@ -228,12 +228,21 @@
     // Fungsi untuk menerapkan filter, menghitung total data dan total nilai yang tampil
     function applyFilters() {
       const filterValue = document.getElementById('filterInput').value.toUpperCase();
-      const dateFromValue = document.getElementById('dateFrom').value;  // "YYYY-MM-DD"
-      const dateToValue = document.getElementById('dateTo').value;      // "YYYY-MM-DD"
+      const dateFromValue = document.getElementById('dateFrom').value;  // format "YYYY-MM-DD"
+      const dateToValue = document.getElementById('dateTo').value;      // format "YYYY-MM-DD"
       const cabangValue = document.getElementById('cabangFilter').value.toUpperCase();
       
-      let dateFrom = dateFromValue ? new Date(dateFromValue) : null;
-      let dateTo = dateToValue ? new Date(dateToValue) : null;
+      // Parsing tanggal secara manual untuk menghindari offset (h+1)
+      let dateFrom = null;
+      if (dateFromValue) {
+        const parts = dateFromValue.split("-");
+        dateFrom = new Date(parts[0], parts[1] - 1, parts[2]);
+      }
+      let dateTo = null;
+      if (dateToValue) {
+        const parts = dateToValue.split("-");
+        dateTo = new Date(parts[0], parts[1] - 1, parts[2]);
+      }
     
       const tableBody = document.getElementById('data-table');
       const tr = tableBody.getElementsByTagName('tr');
@@ -249,7 +258,7 @@
         const cabangText = tds[1].textContent.trim().toUpperCase();
     
         // Cek filter global (mencari di semua kolom)
-        if (
+        let showRow = (
           tanggalText.toUpperCase().indexOf(filterValue) > -1 ||
           cabangText.indexOf(filterValue) > -1 ||
           tds[2].textContent.trim().toUpperCase().indexOf(filterValue) > -1 ||
@@ -257,9 +266,10 @@
           tds[4].textContent.trim().toUpperCase().indexOf(filterValue) > -1 ||
           tds[5].textContent.trim().toUpperCase().indexOf(filterValue) > -1 ||
           tds[6].textContent.trim().toUpperCase().indexOf(filterValue) > -1 
-        ) {
-          // Cek filter tanggal jika nilai dateFrom dan dateTo ada
-          let showRow = true;
+        );
+    
+        // Jika baris sesuai filter global, cek filter tanggal dan cabang
+        if (showRow) {
           if (dateFrom || dateTo) {
             // Konversi tanggal dari teks (format dd/mm/yyyy) ke objek Date
             const parts = tanggalText.split('/');
@@ -273,20 +283,18 @@
               }
             }
           }
-          // Cek filter cabang
+          // Cek filter cabang tambahan
           if (cabangValue && cabangText.indexOf(cabangValue) === -1) {
             showRow = false;
           }
-    
-          if (showRow) {
-            tr[i].style.display = '';
-            totalCount++;
-            // Ambil nilai dari kolom Nilai (indeks 6), hilangkan koma, lalu konversi ke number
-            let nilaiText = tds[6].textContent.trim().replace(/,/g, '');
-            totalNilai += Number(nilaiText) || 0;
-          } else {
-            tr[i].style.display = 'none';
-          }
+        }
+        
+        if (showRow) {
+          tr[i].style.display = '';
+          totalCount++;
+          // Ambil nilai dari kolom Nilai, hilangkan koma, lalu konversi ke number
+          let nilaiText = tds[6].textContent.trim().replace(/,/g, '');
+          totalNilai += Number(nilaiText) || 0;
         } else {
           tr[i].style.display = 'none';
         }
