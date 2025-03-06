@@ -1,11 +1,11 @@
 <!DOCTYPE html>
 <html lang="id">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Dashboard Analisis Penjualan & Pencapaian Target Kendaraan</title>
   <!-- Include CSS DataTables -->
-  <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/jquery.dataTables.min.css">
+  <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/jquery.dataTables.min.css" />
   <!-- Include Chart.js -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <!-- Include jQuery -->
@@ -13,7 +13,7 @@
   <!-- Include DataTables JS -->
   <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
   <!-- Google Fonts -->
-  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet" />
   <style>
     /* Global Styling */
     * { box-sizing: border-box; }
@@ -31,6 +31,8 @@
       background: linear-gradient(135deg, #4a90e2, #357ABD);
       padding: 10px 20px;
       color: #fff;
+      position: relative;
+      z-index: 9999;
     }
     nav {
       display: flex;
@@ -149,23 +151,6 @@
       flex: 1 1 300px;
     }
     
-    /* Filter Dropdowns */
-    .filter-group {
-      text-align: center;
-      margin: 15px;
-    }
-    .filter-group label {
-      font-weight: 500;
-      margin-right: 8px;
-      font-size: 0.9em;
-    }
-    .filter-group select {
-      padding: 6px 10px;
-      border: 1px solid #ccc;
-      border-radius: 4px;
-      font-size: 0.9em;
-    }
-    
     /* Footer */
     footer {
       background: #333;
@@ -183,17 +168,20 @@
     
     /* Responsive */
     @media(max-width: 768px) {
+      .hamburger { display: flex; }
       .nav-menu {
-        flex-direction: column;
-        background: #357ABD;
         position: absolute;
         top: 50px;
         right: 0;
+        background: #357ABD;
         width: 180px;
         display: none;
+        flex-direction: column;
+        gap: 15px;
+        padding: 10px;
+        z-index: 9999;
       }
       .nav-menu.active { display: flex; }
-      .hamburger { display: flex; }
       .hero h1 { font-size: 1.8em; }
       .hero p { font-size: 0.9em; }
       .double-chart-container { flex-direction: column; }
@@ -282,7 +270,6 @@
       </div>
       <div class="chart-container">
         <h3>Perbandingan Kurang byr Leasing vs Kurang byr MD ATPM</h3>
-        <!-- Dropdown filter Perusahaan untuk pie chart -->
         <div class="filter-group">
           <label for="companyFilter">Filter Perusahaan:</label>
           <select id="companyFilter">
@@ -292,7 +279,7 @@
         <canvas id="pieChart"></canvas>
       </div>
     </div>
-    <!-- Container Flex untuk dua grafik berdampingan: Branch & Growth -->
+    <!-- Container Flex untuk grafik Branch & Growth -->
     <div class="double-chart-container">
       <div class="chart-container">
         <h3>Actual Sales vs Total Diskon Internal per Bulan (Filter Cabang)</h3>
@@ -309,9 +296,9 @@
         <canvas id="growthChart"></canvas>
       </div>
     </div>
-    <!-- Grafik Average Discount: Rata-rata Diskon Internal per Cabang -->
+    <!-- Grafik Average Discount: Rata-rata Diskon Internal per Cabang (Internal/Actual) -->
     <div class="chart-container">
-      <h3>Rata-rata Diskon Internal per Cabang (Diskon Internal / Aktual)</h3>
+      <h3>Rata-rata Diskon Internal per Cabang (Internal/Actual)</h3>
       <canvas id="avgDiscountChart"></canvas>
     </div>
   </section>
@@ -625,14 +612,12 @@
       });
     }
     
-    // Grafik Average Discount: Rata-rata Diskon Internal per Cabang (Internal / Aktual)
+    // Grafik Average Discount: Rata-rata Diskon Internal per Cabang (Internal/Actual)
     function updateAvgDiscountChart() {
       var monthFilter = $('#monthFilter').val();
       var filteredData = (monthFilter === "All") 
         ? rawData 
-        : rawData.filter(function(row) {
-            return row[3] === monthFilter;
-          });
+        : rawData.filter(function(row) { return row[3] === monthFilter; });
       
       // Kelompokkan data berdasarkan cabang dan hitung total diskon internal dan total aktual
       var branchGroups = {};
@@ -654,7 +639,7 @@
         branches.push(branch);
         var totalActual = branchGroups[branch].totalActual;
         var totalInternal = branchGroups[branch].totalInternal;
-        // Rasio = Total Diskon Internal / Total Aktual (nilai 0 jika total aktual nol)
+        // Rasio = Total Diskon Internal / Total Aktual (0 jika total aktual nol)
         var ratio = totalActual ? (totalInternal / totalActual) : 0;
         ratioValues.push(ratio);
       }
@@ -675,13 +660,13 @@
           responsive: true,
           plugins: {
             legend: { position: 'top' },
-            title: { display: true, text: 'Rata-rata Diskon Internal per Cabang (Internal / Aktual)' }
+            title: { display: true, text: 'Rata-rata Diskon Internal per Cabang (Internal/Actual)' }
           },
           scales: {
             y: {
               beginAtZero: true,
-              // Jika ingin ditampilkan dalam persen, kalikan nilai ratio dengan 100
               ticks: {
+                // Tampilkan dalam persen (nilai ratio * 100)
                 callback: function(value) {
                   return (value * 100).toFixed(1) + '%';
                 }
@@ -702,17 +687,17 @@
           var dataArray = json[sheetName].slice(1);
           
           // Mapping: Ubah bulan (misal "Jan") menjadi angka ("1")
-          var monthMapping = { 
-            "Jan": "1", "Feb": "2", "Mar": "3", "Apr": "4", 
-            "May": "5", "Jun": "6", "Jul": "7", "Aug": "8", 
-            "Sep": "9", "Oct": "10", "Nov": "11", "Dec": "12" 
+          var monthMapping = {
+            "Jan": "1", "Feb": "2", "Mar": "3", "Apr": "4",
+            "May": "5", "Jun": "6", "Jul": "7", "Aug": "8",
+            "Sep": "9", "Oct": "10", "Nov": "11", "Dec": "12"
           };
           for (var i = 0; i < dataArray.length; i++) {
             var row = dataArray[i];
             if (monthMapping[row[2]]) { row[2] = monthMapping[row[2]]; }
           }
           
-          // Filter: hanya tampilkan baris dengan Actual > 1 (nilai di index 4)
+          // Filter: hanya tampilkan baris dengan Actual > 1
           dataArray = dataArray.filter(function(row) {
             return parseFloat(row[4]) > 1;
           });
@@ -856,7 +841,7 @@
             updatePieChart();
             updateAvgDiscountChart();
           });
-          // Event Listener Filter Cabang (Grafik Branch & Growth)
+          // Event Listener Filter Cabang
           $('#branchFilter').on('change', function() {
             updateBranchChart();
             updateGrowthChart();
