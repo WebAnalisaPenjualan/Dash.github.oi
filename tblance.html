@@ -1,0 +1,330 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Trial Balance</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <!-- DataTables CSS -->
+  <link rel="stylesheet" href="https://cdn.datatables.net/1.11.3/css/jquery.dataTables.min.css">
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #f8f8f8;
+      padding: 20px;
+    }
+    h1, h2 {
+      text-align: center;
+      color: #333;
+    }
+    .filter-container {
+      margin-bottom: 20px;
+      text-align: center;
+    }
+    .filter-container label {
+      margin-right: 10px;
+    }
+    /* Container untuk membuat tabel responsif */
+    .table-responsive {
+      width: 100%;
+      overflow-x: auto;
+    }
+    /* Styling umum tabel */
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 20px;
+      background-color: #fff;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    }
+    thead {
+      background-color: #009879;
+      color: #fff;
+    }
+    th, td {
+      padding: 12px 15px;
+      border: 1px solid #ddd;
+      text-align: left;
+    }
+    tbody tr:nth-child(even) {
+      background-color: #f3f3f3;
+    }
+    tbody tr:hover {
+      background-color: #f1f1f1;
+    }
+    /* Media queries untuk layar kecil */
+    @media only screen and (max-width: 600px) {
+      th, td {
+        padding: 8px 10px;
+        font-size: 12px;
+      }
+    }
+  </style>
+  <!-- jQuery dan DataTables JS -->
+  <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
+  <script src="https://cdn.datatables.net/1.11.3/js/jquery.dataTables.min.js"></script>
+</head>
+<body>
+  <h1>Trial Balance</h1>
+
+  <!-- Filter -->
+  <div class="filter-container">
+    <label for="yearFilter">Pilih Tahun:</label>
+    <select id="yearFilter">
+      <!-- Diisi otomatis -->
+    </select>
+    <label for="companyFilter">Pilih Perusahaan:</label>
+    <select id="companyFilter">
+      <!-- Diisi otomatis -->
+    </select>
+  </div>
+
+  <!-- Tabel Laporan Laba Rugi -->
+  <h2>Laporan Laba Rugi</h2>
+  <div class="table-responsive">
+    <table id="pnl-table"></table>
+  </div>
+
+  <!-- Tabel Ringkasan (Perhitungan TB) -->
+  <h2>Perhitungan TB</h2>
+  <div class="table-responsive">
+    <table id="monthly-table"></table>
+  </div>
+
+  <!-- Tabel Detail (Detail Trial Balance) -->
+  <h2>Detail Trial Balance</h2>
+  <div class="table-responsive">
+    <table id="data-table"></table>
+  </div>
+
+  <script>
+    // Variabel global untuk menyimpan data (dari Google Sheets)
+    let allRows = [];
+
+    // Fungsi untuk memformat angka dengan format Indonesia
+    function formatNumber(value) {
+      let number = parseFloat(value);
+      if (!isNaN(number)) {
+        return number < 0 
+          ? '(' + Math.abs(number).toLocaleString('id-ID') + ')' 
+          : number.toLocaleString('id-ID');
+      }
+      return value;
+    }
+
+    // Fungsi adjustValueForCode:
+    // Nilai untuk "PJ" dan "PLU" akan selalu positif,
+    // sedangkan untuk "PP" dan "BLU" akan selalu negatif.
+    function adjustValueForCode(value, code) {
+      let number = parseFloat(value) || 0;
+      if (code === "PJ" || code === "PLU") {
+        return Math.abs(number);
+      } else if (code === "PP" || code === "BLU") {
+        return -Math.abs(number);
+      }
+      return number;
+    }
+
+    // Struktur displayPnLStructure hanya berisi baris summary untuk PnL
+    const displayPnLStructure = [
+      { 
+        label: "Penjualan Bersih", 
+        formula: (base) => (base["PJ"] || 0) + (base["Rp"] || 0) + (base["PP"] || 0) 
+      },
+      { 
+        label: "Laba Kotor", 
+        formula: (base, computed) => (computed["Penjualan Bersih"] || 0) - (base["HPP"] || 0)
+      },
+      { 
+        label: "Laba Operasional", 
+        formula: (base, computed) => (computed["Laba Kotor"] || 0) - ((base["BP"] || 0) + (base["BAU"] || 0))
+      },
+      { 
+        label: "Pendapatan Biaya Luar Usaha", 
+        formula: (base) => (base["PLU"] || 0) + (base["BLU"] || 0)
+      },
+      { 
+        label: "LabaRugi", 
+        formula: (base, computed) => (computed["Laba Operasional"] || 0) + (computed["Pendapatan Biaya Luar Usaha"] || 0)
+      }
+    ];
+
+    // Fungsi untuk membangun filter (Tahun & Perusahaan)
+    function buildFilters(rows) {
+      const yearSelect = document.getElementById('yearFilter');
+      const companySelect = document.getElementById('companyFilter');
+      let yearSet = new Set(), companySet = new Set();
+      for (let i = 1; i < rows.length; i++) {
+        let row = rows[i];
+        if (row[7]) yearSet.add(row[7]);
+        if (row[8]) companySet.add(row[8]);
+      }
+      let years = Array.from(yearSet).sort();
+      let companies = Array.from(companySet).sort();
+      let yearOptions = '<option value="">-- All --</option>';
+      years.forEach(y => { yearOptions += `<option value="${y}">${y}</option>`; });
+      yearSelect.innerHTML = yearOptions;
+      let companyOptions = '<option value="">-- All --</option>';
+      companies.forEach(c => { companyOptions += `<option value="${c}">${c}</option>`; });
+      companySelect.innerHTML = companyOptions;
+      yearSelect.addEventListener('change', buildTables);
+      companySelect.addEventListener('change', buildTables);
+    }
+
+    // Fungsi untuk membangun tabel Detail (Trial Balance)
+    function buildDataTable(rows) {
+      const header = [
+        "Acc No", "Name", "Beginning", "Debit", "Credit", 
+        "End", "Bulan", "Tahun", "Perusahaan", "GL ACC1", "GL ACC2"
+      ];
+      let tableContent = '<thead><tr>';
+      header.forEach(cell => { tableContent += `<th>${cell}</th>`; });
+      tableContent += '</tr></thead><tbody>';
+      for (let i = 0; i < rows.length; i++) {
+        let row = rows[i];
+        tableContent += '<tr>';
+        for (let j = 0; j < header.length; j++) {
+          let cellData = row[j] || '';
+          if ([2, 3, 4, 5].includes(j)) {
+            if (j === 5) { 
+              cellData = formatNumber(adjustValueForCode(row[j], row[9]));
+            } else {
+              cellData = formatNumber(cellData);
+            }
+          }
+          tableContent += `<td>${cellData}</td>`;
+        }
+        tableContent += '</tr>';
+      }
+      tableContent += '</tbody>';
+      document.getElementById('data-table').innerHTML = tableContent;
+    }
+
+    // Fungsi untuk membangun tabel Ringkasan (Perhitungan TB)
+    function buildMonthlyTable(rows) {
+      let accCodesSet = new Set();
+      for (let i = 0; i < rows.length; i++) {
+        if (rows[i][9]) accCodesSet.add(rows[i][9]);
+      }
+      let accCodes = Array.from(accCodesSet);
+      let sums = {};
+      accCodes.forEach(code => { sums[code] = Array(13).fill(0); });
+      for (let i = 0; i < rows.length; i++) {
+        let row = rows[i];
+        let endValue = adjustValueForCode(row[5], row[9]);
+        let bulan = parseInt(row[6]) || 0;
+        let glAcc1 = row[9];
+        if (glAcc1 && sums[glAcc1] && bulan >= 1 && bulan <= 12) {
+          sums[glAcc1][bulan] += endValue;
+        }
+      }
+      let monthlyTable = '<thead><tr><th>GL ACC1</th>';
+      for (let m = 1; m <= 12; m++) { monthlyTable += `<th>${m}</th>`; }
+      monthlyTable += '</tr></thead><tbody>';
+      accCodes.forEach(code => {
+        monthlyTable += `<tr><td>${code}</td>`;
+        for (let m = 1; m <= 12; m++) {
+          monthlyTable += `<td>${formatNumber(sums[code][m])}</td>`;
+        }
+        monthlyTable += '</tr>';
+      });
+      monthlyTable += '</tbody>';
+      document.getElementById('monthly-table').innerHTML = monthlyTable;
+    }
+
+    // Fungsi untuk membangun tabel Laporan Laba Rugi (PnL) dengan hanya summary
+    function buildPnLTable(rows) {
+      // Hitung monthlySums dari data (untuk semua kode)
+      let monthlySums = {};
+      for (let m = 1; m <= 12; m++) { monthlySums[m] = {}; }
+      for (let i = 0; i < rows.length; i++) {
+        let row = rows[i];
+        let endValue = adjustValueForCode(row[5], row[9]);
+        let bulan = parseInt(row[6]) || 0;
+        let glAcc1 = row[9];
+        if (bulan >= 1 && bulan <= 12 && glAcc1) {
+          if (!monthlySums[bulan][glAcc1]) { monthlySums[bulan][glAcc1] = 0; }
+          monthlySums[bulan][glAcc1] += endValue;
+        }
+      }
+      // Hasil summary akan dihitung menggunakan base yang diambil dari monthlySums
+      let result = {};
+      displayPnLStructure.forEach(item => { result[item.label] = Array(13).fill(0); });
+      for (let m = 1; m <= 12; m++) {
+        let base = {
+          "PJ": monthlySums[m]["PJ"] || 0,
+          "Rp": monthlySums[m]["Rp"] || 0,
+          "PP": monthlySums[m]["PP"] || 0,
+          "HPP": monthlySums[m]["HPP"] || 0,
+          "BP": monthlySums[m]["BP"] || 0,
+          "BAU": monthlySums[m]["BAU"] || 0,
+          "PLU": monthlySums[m]["PLU"] || 0,
+          "BLU": monthlySums[m]["BLU"] || 0
+        };
+        let computed = {};
+        displayPnLStructure.forEach(item => {
+          let val = item.formula(base, computed);
+          computed[item.label] = val;
+          result[item.label][m] = val;
+        });
+      }
+      let html = '<thead><tr><th>Acc Code</th>';
+      for (let m = 1; m <= 12; m++) { html += `<th>${m}</th>`; }
+      html += '</tr></thead><tbody>';
+      // Untuk baris summary, beri background biru muda
+      const specialLabels = new Set(["Penjualan Bersih", "Laba Kotor", "Laba Operasional", "Pendapatan Biaya Luar Usaha", "LabaRugi"]);
+      displayPnLStructure.forEach(item => {
+        let rowStyle = specialLabels.has(item.label) ? ' style="background-color: #ADD8E6;"' : '';
+        html += `<tr${rowStyle}><td>${item.label}</td>`;
+        for (let m = 1; m <= 12; m++) {
+          html += `<td>${formatNumber(result[item.label][m])}</td>`;
+        }
+        html += '</tr>';
+      });
+      html += '</tbody>';
+      document.getElementById('pnl-table').innerHTML = html;
+    }
+
+    // Fungsi untuk menerapkan filter dan membangun ulang semua tabel
+    function buildTables() {
+      const selectedYear = document.getElementById('yearFilter').value;
+      const selectedCompany = document.getElementById('companyFilter').value;
+      let filteredRows = allRows.slice(1);
+      if (selectedYear !== '') {
+        filteredRows = filteredRows.filter(r => r[7].toString() === selectedYear);
+      }
+      if (selectedCompany !== '') {
+        filteredRows = filteredRows.filter(r => r[8] === selectedCompany);
+      }
+      buildDataTable(filteredRows);
+      buildMonthlyTable(filteredRows);
+      buildPnLTable(filteredRows);
+      // Inisialisasi DataTables untuk interaktivitas (hancurkan dulu jika sudah ada)
+      if ($.fn.DataTable.isDataTable('#data-table')) { $('#data-table').DataTable().destroy(); }
+      if ($.fn.DataTable.isDataTable('#monthly-table')) { $('#monthly-table').DataTable().destroy(); }
+      if ($.fn.DataTable.isDataTable('#pnl-table')) { $('#pnl-table').DataTable().destroy(); }
+      $('#data-table').DataTable({ responsive: true });
+      $('#monthly-table').DataTable({ responsive: true });
+      $('#pnl-table').DataTable({ responsive: true });
+    }
+
+    function getDataFromSheet() {
+      const sheetUrl = 'https://script.google.com/macros/s/AKfycbwx_SDVE0cD2GaZCPRKCgZjMOf3Et2j1eqRLRq4cEpA-VAzV9PiQbgi1YFinEpj0gsW/exec';
+      fetch(sheetUrl)
+        .then(response => response.json())
+        .then(data => {
+          const rows = data.Tb;
+          if (!rows || rows.length === 0) {
+            document.getElementById('data-table').innerHTML = '<tr><td>Tidak ada data</td></tr>';
+            return;
+          }
+          allRows = rows;
+          buildFilters(allRows);
+          buildTables();
+        })
+        .catch(error => console.error('Error loading data:', error));
+    }
+    
+    document.addEventListener('DOMContentLoaded', getDataFromSheet);
+  </script>
+</body>
+</html>
