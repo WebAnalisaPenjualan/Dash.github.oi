@@ -172,9 +172,9 @@
 <body>
   <header>
     <h1>Performa SPV</h1>
-    <nav>
-      <a href="index.html">Kembali ke Dashboard</a>
-    </nav>
+      <nav>
+        <a href="index.html">Kembali ke Dashboard</a>
+      </nav>
   </header>
   <main>
     <!-- Bagian untuk filter -->
@@ -227,17 +227,21 @@
           <th>Supervisor/Field</th>
           <th>Salesman</th>
           <th>Nama Customer</th>
+          <th>No Rangka</th>
+          <th>No Mesin</th>
           <th>Kecamatan</th>
           <th>Pembayaran</th>
           <th>Diskon Internal</th>
           <th>Diskon Eksternal</th>
         </tr>
       </thead>
+      
       <tbody id="data-table">
         <!-- Data dari Google Sheets akan dimuat di sini -->
       </tbody>
     </table>
 
+    <!-- Bagian untuk menampilkan total data dan total diskon -->
     <div id="totalData"></div>
   </main>
   <footer>
@@ -257,9 +261,9 @@
     let pieChart;
     let paymentChart; // Variabel untuk grafik baru
 
-    // Fungsi untuk format angka: mengubah angka menjadi string dengan comma sebagai pemisah ribuan dan titik sebagai pemisah desimal.
+    // Fungsi untuk format angka tanpa desimal (contoh: 1235 menjadi "1,235")
     function formatNumber(num) {
-      return num.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+      return num.toLocaleString('en-US', { minimumFractionDigits: 0, maximumFractionDigits: 0 });
     }
 
     // Fungsi untuk mengupdate summary cards berdasarkan data supervisorCount (jumlah transaksi per Supervisor/Field)
@@ -287,6 +291,28 @@
       
       let avgSales = (count > 0) ? (sumSales / count) : 0;
       
+      // Tambahkan card Total Jual Cabang jika filter cabang aktif
+      let branchFilterValue = document.getElementById('cabangFilter').value.trim();
+      let branchCardHTML = '';
+      if (branchFilterValue !== '') {
+        let branchTotal = 0;
+        const tableRows = document.querySelectorAll('#data-table tr');
+        tableRows.forEach(row => {
+          if (row.style.display === 'none') return;
+          const cabangText = row.getElementsByTagName('td')[1].textContent.trim();
+          if (cabangText.toUpperCase().indexOf(branchFilterValue.toUpperCase()) > -1) {
+            branchTotal++;
+          }
+        });
+        branchCardHTML = `
+          <div class="card">
+            <h4>Total Jual Cabang</h4>
+            <p>${branchFilterValue}</p>
+            <p>${branchTotal} Transaksi</p>
+          </div>
+        `;
+      }
+      
       const summaryCards = document.getElementById('summaryCards');
       summaryCards.innerHTML = `
         <div class="card">
@@ -303,9 +329,11 @@
           <h4>Rata-rata Penjualan</h4>
           <p>${formatNumber(avgSales)} Transaksi</p>
         </div>
+        ${branchCardHTML}
       `;
     }
 
+    // Fungsi untuk mendapatkan data dari Google Sheets dan mengisi tabel
     function getDataFromSheet() {
       const sheetUrl = 'https://script.google.com/macros/s/AKfycbwV4ZymIjEwWDxEBMZYZ4Y65WpUDGu4ijSQL6H0RYp6BCapNugYy5cPI9lGOQscTKm4/exec';
       
@@ -331,22 +359,25 @@
                 formattedDate = rawDate;
               }
             }
+            // Hitung total diskon internal dan eksternal
             let diskonInternal = (parseFloat(row[20]) || 0) + (parseFloat(row[24]) || 0) + (parseFloat(row[38]) || 0);
             let diskonEksternal = (parseFloat(row[21]) || 0) + (parseFloat(row[22]) || 0) + (parseFloat(row[23]) || 0); 
             let formattedDiskonInternal = formatNumber(diskonInternal);
             let formattedDiskonEksternal = formatNumber(diskonEksternal);
             
             tableContent += '<tr>';
-            tableContent += `<td>${formattedDate}</td>`;
-            tableContent += `<td>${row[1] || ''}</td>`;
-            tableContent += `<td>${row[63] || ''}</td>`;
-            tableContent += `<td>${row[44] || ''}</td>`;
-            tableContent += `<td>${row[36] || ''}</td>`;
-            tableContent += `<td>${row[9] || ''}</td>`;
-            tableContent += `<td>${row[12] || ''}</td>`;
-            tableContent += `<td>${row[33] || ''}</td>`;
-            tableContent += `<td>${formattedDiskonInternal}</td>`;
-            tableContent += `<td>${formattedDiskonEksternal}</td>`;
+              tableContent += `<td>${formattedDate}</td>`;
+              tableContent += `<td>${row[1] || ''}</td>`;
+              tableContent += `<td>${row[63] || ''}</td>`;
+              tableContent += `<td>${row[44] || ''}</td>`;
+              tableContent += `<td>${row[36] || ''}</td>`;
+              tableContent += `<td>${row[9] || ''}</td>`;          // Nama Customer
+              tableContent += `<td>${row[6] || ''}</td>`;           // No Rangka
+              tableContent += `<td>${row[5] || ''}</td>`;           // No Mesin
+              tableContent += `<td>${row[12] || ''}</td>`;          // Kecamatan
+              tableContent += `<td>${row[33] || ''}</td>`;          // Pembayaran
+              tableContent += `<td>${formattedDiskonInternal}</td>`; // Diskon Internal
+              tableContent += `<td>${formattedDiskonEksternal}</td>`;  // Diskon Eksternal
             tableContent += '</tr>';
           }
           document.getElementById('data-table').innerHTML = tableContent;
@@ -359,6 +390,7 @@
         });
     }
     
+    // Inisialisasi event listener untuk filter
     function initFilter() {
       const filterInput = document.getElementById('filterInput');
       const dateFromInput = document.getElementById('dateFrom');
@@ -371,6 +403,7 @@
       cabangInput.addEventListener('keyup', applyFilters);
     }
     
+    // Fungsi untuk menerapkan filter berdasarkan input pengguna
     function applyFilters() {
       const filterValue = document.getElementById('filterInput').value.toUpperCase();
       const dateFromValue = document.getElementById('dateFrom').value;
@@ -384,8 +417,7 @@
     
       const tableBody = document.getElementById('data-table');
       const tr = tableBody.getElementsByTagName('tr');
-      let totalCount = 0;
-    
+      
       for (let i = 0; i < tr.length; i++) {
         const tds = tr[i].getElementsByTagName('td');
         if (tds.length < 10) continue;
@@ -418,26 +450,43 @@
             showRow = false;
           }
     
-          if (showRow) {
-            tr[i].style.display = '';
-            totalCount++;
-          } else {
-            tr[i].style.display = 'none';
-          }
+          tr[i].style.display = showRow ? '' : 'none';
         } else {
           tr[i].style.display = 'none';
         }
       }
     
-      updateTotalData(totalCount);
+      updateTotalData();
       updateChart();
     }
     
-    function updateTotalData(totalCount = 0) {
+    // Fungsi updateTotalData yang menghitung jumlah baris data yang terlihat
+    // serta total nilai diskon internal dan eksternal dari setiap baris
+    function updateTotalData() {
+      const tableRows = document.querySelectorAll('#data-table tr');
+      let totalCount = 0, totalDiskonInternal = 0, totalDiskonEksternal = 0;
+      
+      tableRows.forEach(row => {
+        if (row.style.display === 'none') return;
+        totalCount++;
+        const cells = row.getElementsByTagName('td');
+        if (cells.length >= 12) {
+          let diskonInternal = parseFloat(cells[10].textContent.replace(/,/g, '')) || 0;
+          let diskonEksternal = parseFloat(cells[11].textContent.replace(/,/g, '')) || 0;
+          totalDiskonInternal += diskonInternal;
+          totalDiskonEksternal += diskonEksternal;
+        }
+      });
+      
       const totalDataElement = document.getElementById('totalData');
-      totalDataElement.textContent = `Total Data: ${totalCount}`;
+      totalDataElement.innerHTML = `
+        Total Data: ${totalCount} <br>
+        Total Diskon Internal: ${formatNumber(totalDiskonInternal)} <br>
+        Total Diskon Eksternal: ${formatNumber(totalDiskonEksternal)}
+      `;
     }
     
+    // Fungsi untuk memperbarui grafik berdasarkan data yang ada di tabel
     function updateChart() {
       const tableRows = document.querySelectorAll('#data-table tr');
       
@@ -493,9 +542,11 @@
       tableRows.forEach(row => {
         if (row.style.display === 'none') return;
         const cells = row.getElementsByTagName('td');
-        if (cells.length >= 9) {
+        // Pastikan ada setidaknya 11 kolom (kolom Diskon Internal berada di indeks 10)
+        if (cells.length >= 11) {
           const supervisor = cells[3].textContent.trim();
-          const diskonInternalStr = cells[8].textContent.trim();
+          // Ambil nilai Diskon Internal dari indeks ke-10
+          const diskonInternalStr = cells[10].textContent.trim();
           let diskonInternalVal = parseFloat(diskonInternalStr.replace(/,/g, ''));
           if (supervisor) {
             discountSums[supervisor] = (discountSums[supervisor] || 0) + diskonInternalVal;
@@ -553,8 +604,8 @@
       tableRows.forEach(row => {
         if (row.style.display === 'none') return;
         const cells = row.getElementsByTagName('td');
-        if (cells.length >= 8) {
-          const paymentMethod = cells[7].textContent.trim();
+        if (cells.length >= 10) {
+          const paymentMethod = cells[9].textContent.trim();
           if (paymentMethod) {
             paymentCount[paymentMethod] = (paymentCount[paymentMethod] || 0) + 1;
           }
@@ -594,7 +645,7 @@
         paymentChart.update();
       }
       
-      // Update Summary Cards
+      // Update Summary Cards (termasuk Total Jual Cabang jika aktif)
       updateSummaryCards(supervisorCount);
     }
     
