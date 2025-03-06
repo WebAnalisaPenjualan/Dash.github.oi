@@ -12,137 +12,191 @@
   <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
   <!-- Include DataTables JS -->
   <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
+  <!-- Google Fonts -->
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
   <style>
-    /* Reset & Basic Styling */
+    /* Global Styling */
+    * { box-sizing: border-box; }
     body {
-      font-family: Arial, sans-serif;
+      font-family: 'Roboto', sans-serif;
       margin: 0;
-      background: #f5f5f5;
+      background: #f0f2f5;
+      color: #333;
+      font-size: 14px;
     }
+    a { text-decoration: none; color: inherit; }
     
     /* Header & Navbar */
     header {
-      background: #333;
-      color: #fff;
+      background: linear-gradient(135deg, #4a90e2, #357ABD);
       padding: 10px 20px;
-      position: relative;
+      color: #fff;
     }
-    /* Kontainer menu */
     nav {
       display: flex;
       align-items: center;
       justify-content: space-between;
     }
-    /* Hamburger Icon */
+    .logo { font-size: 1.3em; font-weight: 700; }
     .hamburger {
       display: none;
       flex-direction: column;
       cursor: pointer;
     }
     .hamburger span {
-      background: #fff;
-      display: block;
       height: 3px;
-      width: 25px;
-      margin: 4px 0;
+      width: 20px;
+      background: #fff;
+      margin: 3px 0;
       transition: 0.4s;
     }
-    
-    nav ul {
+    .nav-menu {
       list-style: none;
-      padding: 0;
-      margin: 0;
-      display: flex; /* tampilan default: horizontal */
+      display: flex;
       gap: 15px;
     }
-    nav ul li a {
-      color: #fff;
-      text-decoration: none;
-      transition: color 0.3s;
-    }
-    nav ul li a:hover {
-      color: #ccc;
-    }
+    .nav-menu li { font-weight: 500; }
+    .nav-menu li a { color: #fff; transition: color 0.3s; }
+    .nav-menu li a:hover { color: #d1eaff; }
     
     /* Hero Section */
     .hero {
-      background: #444;
+      background: url('https://via.placeholder.com/1500x400?text=Dashboard+Hero') center/cover no-repeat;
       color: #fff;
-      padding: 40px 20px;
       text-align: center;
+      padding: 60px 20px;
+      position: relative;
     }
-    .hero h1 {
-      margin: 0;
-      font-size: 2em;
+    .hero::after {
+      content: "";
+      position: absolute;
+      top: 0; left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.4);
+      z-index: 1;
     }
-    .hero p {
-      font-size: 1.2em;
-      margin-top: 10px;
+    .hero-content { position: relative; z-index: 2; }
+    .hero h1 { font-size: 2em; margin: 0 0 8px; }
+    .hero p { font-size: 1em; margin: 0; }
+    
+    /* Section Headings */
+    section h2 {
+      text-align: center;
+      margin: 30px 0 15px;
+      font-weight: 700;
+      font-size: 1.8em;
+      color: #357ABD;
     }
     
     /* Cards Container */
     .cards-container {
       display: flex;
-      gap: 20px;
-      margin: 20px;
       flex-wrap: wrap;
+      gap: 15px;
+      justify-content: center;
+      margin: 0 15px 30px;
     }
-    .cards-container .card {
+    .card {
       background: #fff;
-      border: 1px solid #ccc;
-      border-radius: 5px;
-      padding: 20px;
+      border-radius: 8px;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.1);
+      padding: 15px;
+      flex: 1 1 220px;
+      max-width: 250px;
       text-align: center;
-      flex: 1;
-      min-width: 250px;
-      transition: transform 0.3s;
+      transition: transform 0.3s, box-shadow 0.3s;
     }
-    .cards-container .card:hover {
-      transform: scale(1.05);
+    .card:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 3px 8px rgba(0,0,0,0.12);
     }
+    .card h3 { margin: 0 0 8px; color: #4a90e2; font-size: 1.2em; }
+    .card p { margin: 0; font-size: 1em; font-weight: 500; }
+    
+    /* Table Section */
+    #dataTableSection {
+      margin: 15px;
+      padding: 15px;
+      background: #fff;
+      border-radius: 8px;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.1);
+    }
+    #dataTable { width: 100%; }
     
     /* Chart Container */
     .chart-container {
-      margin: 20px;
       background: #fff;
+      padding: 15px;
+      margin: 15px;
+      border-radius: 8px;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.1);
+    }
+    .chart-container h3 {
+      text-align: center;
+      margin-bottom: 15px;
+      color: #357ABD;
+      font-size: 1.2em;
+    }
+    
+    /* Flex Container untuk grafik berdampingan */
+    .double-chart-container {
+      display: flex;
+      gap: 15px;
+      flex-wrap: wrap;
+    }
+    .double-chart-container .chart-container {
+      flex: 1 1 300px;
+    }
+    
+    /* Filter Dropdowns */
+    .filter-group {
+      text-align: center;
+      margin: 15px;
+    }
+    .filter-group label {
+      font-weight: 500;
+      margin-right: 8px;
+      font-size: 0.9em;
+    }
+    .filter-group select {
+      padding: 6px 10px;
       border: 1px solid #ccc;
-      border-radius: 5px;
-      padding: 20px;
+      border-radius: 4px;
+      font-size: 0.9em;
     }
     
     /* Footer */
     footer {
       background: #333;
-      color: #fff;
-      padding: 20px;
+      color: #ccc;
       text-align: center;
+      padding: 15px;
+      font-size: 0.8em;
     }
+    footer a {
+      color: #ccc;
+      margin: 0 5px;
+      transition: color 0.3s;
+    }
+    footer a:hover { color: #fff; }
     
     /* Responsive */
     @media(max-width: 768px) {
-      /* Navbar: tampilkan hamburger, sembunyikan ul */
-      .hamburger {
-        display: flex; /* Tampilkan icon hamburger */
-      }
-      nav ul {
-        display: none; /* Sembunyikan menu default */
-        flex-direction: column; /* Supaya menu vertikal di mobile */
-        gap: 10px;
-        margin-top: 10px;
-      }
-      nav ul.active {
-        display: flex; /* Tampilkan menu saat di-toggle */
-      }
-      /* Ubah penempatan hamburger ke kanan, misalnya */
-      nav {
-        flex-direction: row;
-        justify-content: space-between;
-      }
-      /* Cards & Nav => kolom */
-      .cards-container {
+      .nav-menu {
         flex-direction: column;
-        align-items: center;
+        background: #357ABD;
+        position: absolute;
+        top: 50px;
+        right: 0;
+        width: 180px;
+        display: none;
       }
+      .nav-menu.active { display: flex; }
+      .hamburger { display: flex; }
+      .hero h1 { font-size: 1.8em; }
+      .hero p { font-size: 0.9em; }
+      .double-chart-container { flex-direction: column; }
     }
   </style>
 </head>
@@ -150,46 +204,45 @@
   <!-- Header & Navbar -->
   <header>
     <nav>
-      <!-- Judul / Branding -->
-      <div style="font-size: 1.3em; font-weight: bold;">
-        Dashboard Audit Internal
-      </div>
-      <!-- Hamburger Icon -->
+      <div class="logo">Audit Internal</div>
       <div class="hamburger" id="hamburgerBtn">
         <span></span>
         <span></span>
         <span></span>
       </div>
-      <!-- Menu -->
-      <ul id="navMenu">
-        <li><a href="view1.html">Performance SPV 📊</a></li>
-        <li><a href="COA.html">Transaksi - Analisa COA ✅</a></li>
-        <li><a href="https://script.google.com/macros/s/AKfycbwYsNtbFeTb6_lzjHH7hRbtAXxVsin2n4z7G3bxjyA/dev">Form Audit 🏢</a></li>
-        <li><a href="https://script.google.com/macros/s/AKfycbw8EFzely1mdolcueIGRNIeIMcQOTU8SqW0gKr8ljQrb-EMh7vzAChu4UKR946wzjGe/exec?jenis=piutang">piutang  📈</a></li>
-        <li><a href="https://script.google.com/macros/s/AKfycbxGvnj4apNfUWvcm7tyn9g9iWcODn9oRuelwbn1yH8mgUFumZxStyqNsdMjcbTsGfbk/exec?jenis=kasbesar">kas besar 🚀</a></li>
-        <li><a href="form_Kas.html">form Internal 🚀</a></li>
+      <ul class="nav-menu" id="navMenu">
+        <li><a href="view1.html">Performance SPV</a></li>
+        <li><a href="COA.html">Transaksi - Analisa COA</a></li>
+        <li><a href="form_Kas.html">Form Internal Audit</a></li>
       </ul>
     </nav>
   </header>
   
   <!-- Hero Section -->
   <div class="hero">
-    <h1>Dashboard Analisis Penjualan & Pencapaian Target Kendaraan</h1>
-    <p>Ringkasan performa penjualan berdasarkan data transaksi dan pencapaian target bulanan</p>
+    <div class="hero-content">
+      <h1>Dashboard Analisis Penjualan</h1>
+      <p>Pencapaian Target Kendaraan & Analisis Sales</p>
+    </div>
   </div>
   
   <!-- Statistik Utama -->
   <section id="ringkasan">
-    <h2 style="text-align:center; margin-top:20px;">Statistik Utama</h2>
+    <h2>Statistik Utama</h2>
     <div id="stats" class="cards-container">
-      <!-- Card statistik akan disisipkan di sini -->
+      <!-- Card statistik akan disisipkan secara dinamis -->
     </div>
   </section>
   
   <!-- Tabel Data Transaksi -->
   <section id="dataTableSection">
-    <h2 style="text-align:center;">Tabel Data Transaksi</h2>
-    <table id="dataTable" class="display" style="width:100%">
+    <!-- Header Perusahaan -->
+    <div class="company-header" style="text-align: center; margin-bottom: 15px; padding: 10px; background: #357ABD; color: #fff; border-radius: 4px;">
+      <h2 style="margin: 0; font-size: 1.8em;">Perusahaan Data 16</h2>
+      <p style="margin: 5px 0 0;">Jl. Contoh No. 123, Kota Contoh</p>
+    </div>
+    <h2 style="text-align:center;">Tabel Sales</h2>
+    <table id="dataTable" class="display">
       <thead>
         <tr></tr>
       </thead>
@@ -198,56 +251,79 @@
   
   <!-- Dashboard Grafik -->
   <section id="charts">
-    <h2 style="text-align:center; margin-top:40px;">Dashboard Grafik</h2>
-    <!-- Filter Bulan hanya untuk Grafik -->
-    <div style="text-align:center; margin:20px;">
+    <h2>Dashboard Grafik</h2>
+    <div class="filter-group">
       <label for="monthFilter">Filter Bulan:</label>
       <select id="monthFilter">
         <option value="All">Semua</option>
-        <option value="Jan">Jan</option>
-        <option value="Feb">Feb</option>
-        <option value="Mar">Mar</option>
-        <option value="Apr">Apr</option>
-        <option value="May">May</option>
-        <option value="Jun">Jun</option>
-        <option value="Jul">Jul</option>
-        <option value="Aug">Aug</option>
-        <option value="Sep">Sep</option>
-        <option value="Oct">Oct</option>
-        <option value="Nov">Nov</option>
-        <option value="Dec">Dec</option>
+        <option value="1">1</option>
+        <option value="2">2</option>
+        <option value="3">3</option>
+        <option value="4">4</option>
+        <option value="5">5</option>
+        <option value="6">6</option>
+        <option value="7">7</option>
+        <option value="8">8</option>
+        <option value="9">9</option>
+        <option value="10">10</option>
+        <option value="11">11</option>
+        <option value="12">12</option>
       </select>
     </div>
-    <!-- Bar Chart -->
     <div class="chart-container">
       <h3>Penjualan Aktual vs Target per Cabang per Bulan</h3>
       <canvas id="barChart"></canvas>
     </div>
-    <!-- Line Chart -->
-    <div class="chart-container">
-      <h3>Tren Penjualan per Bulan</h3>
-      <canvas id="lineChart"></canvas>
+    <!-- Flex Container untuk Grafik Tren Penjualan dan Pie Chart (Berdampingan) -->
+    <div class="double-chart-container">
+      <div class="chart-container">
+        <h3>Tren Penjualan per Bulan</h3>
+        <canvas id="lineChart"></canvas>
+      </div>
+      <div class="chart-container">
+        <h3>Perbandingan Kurang byr Leasing vs Kurang byr MD ATPM</h3>
+        <!-- Dropdown filter Perusahaan untuk pie chart -->
+        <div class="filter-group">
+          <label for="companyFilter">Filter Perusahaan:</label>
+          <select id="companyFilter">
+            <option value="All">Semua</option>
+          </select>
+        </div>
+        <canvas id="pieChart"></canvas>
+      </div>
     </div>
-    <!-- Pie Chart 1: Diskon Internal vs Diskon Eksternal -->
-    <div class="chart-container">
-      <h3>Perbandingan Diskon Internal vs Diskon Eksternal</h3>
-      <canvas id="pieChart"></canvas>
+    <!-- Container Flex untuk dua grafik berdampingan: Branch & Growth -->
+    <div class="double-chart-container">
+      <div class="chart-container">
+        <h3>Actual Sales vs Total Diskon Internal per Bulan (Filter Cabang)</h3>
+        <div class="filter-group">
+          <label for="branchFilter">Filter Cabang:</label>
+          <select id="branchFilter">
+            <option value="All">Semua</option>
+          </select>
+        </div>
+        <canvas id="branchChart"></canvas>
+      </div>
+      <div class="chart-container">
+        <h3>Persentase Kenaikan Penjualan & Diskon Internal</h3>
+        <canvas id="growthChart"></canvas>
+      </div>
     </div>
-    <!-- Pie Chart 2: Kurang byr Leasing vs Kurang byr MD ATPM -->
+    <!-- Grafik Average Discount: Rata-rata Diskon Internal per Cabang -->
     <div class="chart-container">
-      <h3>Perbandingan Kurang byr Leasing vs Kurang byr MD ATPM</h3>
-      <canvas id="pieChart2"></canvas>
+      <h3>Rata-rata Diskon Internal per Cabang (Diskon Internal / Aktual)</h3>
+      <canvas id="avgDiscountChart"></canvas>
     </div>
   </section>
   
   <!-- Strategi Optimalisasi -->
   <section id="strategi">
-    <h2 style="text-align:center; margin-top:40px;">Strategi Optimalisasi</h2>
+    <h2>Strategi Optimalisasi</h2>
     <div class="chart-container">
       <ul>
-        <li>Fokus meningkatkan performa di cabang dengan pencapaian target rendah.</li>
-        <li>Memberikan insentif/diskon pada model kendaraan dengan margin tinggi.</li>
-        <li>Menyesuaikan strategi pemasaran berdasarkan tren metode pembayaran.</li>
+        <li>Fokus meningkatkan performa cabang dengan target rendah.</li>
+        <li>Memberikan insentif untuk model kendaraan dengan margin tinggi.</li>
+        <li>Optimalisasi strategi pemasaran berdasarkan tren pembayaran.</li>
       </ul>
     </div>
   </section>
@@ -256,56 +332,44 @@
   <footer>
     <p>&copy; 2025 Nama Perusahaan. Semua hak dilindungi.</p>
     <p>
-      <a href="#" style="color: #fff; margin: 0 5px;">Facebook</a> |
-      <a href="#" style="color: #fff; margin: 0 5px;">Twitter</a> |
-      <a href="#" style="color: #fff; margin: 0 5px;">Instagram</a>
+      <a href="#">Facebook</a> |
+      <a href="#">Twitter</a> |
+      <a href="#">Instagram</a>
     </p>
     <p>Sumber data: Google Sheets | Kontak: info@perusahaan.com</p>
   </footer>
   
-  <!-- Script untuk DataTable & Grafik -->
+  <!-- Script Navigasi Responsif -->
   <script>
-    // Toggle menu saat hamburger di-klik
     document.addEventListener('DOMContentLoaded', function() {
       const hamburgerBtn = document.getElementById('hamburgerBtn');
       const navMenu = document.getElementById('navMenu');
-      
       hamburgerBtn.addEventListener('click', function() {
         navMenu.classList.toggle('active');
       });
     });
   </script>
   
+  <!-- Script DataTable & Grafik -->
   <script>
-    // Global variable untuk menyimpan data dari sheet T_get
     var monthMaxRankMapping = {};
-    var rawData = []; // Data untuk DataTable, Statistik, Bar/Pie/Line Chart
+    var rawData = []; // Data untuk DataTable, Statistik, Bar/Line Chart
+    var barChart, lineChart, branchChart, growthChart, pieChart, avgDiscountChart;
     
-    // Global chart instances
-    var barChart, lineChart, pieChart, pieChart2;
-    
-    // Fungsi updateCharts: memfilter rawData untuk grafik Bar, Pie, dan update Line Chart dengan data lengkap.
+    // Fungsi updateCharts: Update Bar dan Line Chart berdasarkan filter bulan
     function updateCharts(filterMonth) {
-      var filteredData = [];
-      if(filterMonth === "All") {
-        filteredData = rawData;
-      } else {
-        filteredData = rawData.filter(function(row) {
-          // row[3] adalah Bulan (setelah sisip Rank)
-          return row[3] === filterMonth;
-        });
-      }
+      var filteredData = (filterMonth === "All") ? rawData : rawData.filter(function(row) {
+        return row[3] === filterMonth;
+      });
       
-      // --- Bar Chart ---
-      var barLabels = [];
-      var barTargetData = [];
-      var barActualData = [];
+      // Bar Chart: Penjualan Aktual vs Target per Cabang per Bulan
+      var barLabels = [], barTargetData = [], barActualData = [];
       filteredData.forEach(function(row) {
         barLabels.push(row[1] + " - " + row[3]);
         barTargetData.push(parseFloat(row[4]) || 0);
         barActualData.push(parseFloat(row[5]) || 0);
       });
-      if(barChart) { barChart.destroy(); }
+      if (barChart) { barChart.destroy(); }
       var barCtx = document.getElementById('barChart').getContext('2d');
       barChart = new Chart(barCtx, {
         type: 'bar',
@@ -337,24 +401,22 @@
         }
       });
       
-      // --- Line Chart ---
-      // Gunakan seluruh rawData sehingga tren per bulan lengkap.
+      // Line Chart: Tren Penjualan per Bulan
       var trendData = {};
       rawData.forEach(function(row) {
         var bulan = row[3];
         var actual = parseFloat(row[5]) || 0;
         trendData[bulan] = (trendData[bulan] || 0) + actual;
       });
-      var monthOrder = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
-      var lineLabels = [];
-      var lineValues = [];
+      var monthOrder = ["1","2","3","4","5","6","7","8","9","10","11","12"];
+      var lineLabels = [], lineValues = [];
       monthOrder.forEach(function(m) {
-        if(trendData[m] !== undefined) {
+        if (trendData[m] !== undefined) {
           lineLabels.push(m);
           lineValues.push(trendData[m]);
         }
       });
-      if(lineChart) { lineChart.destroy(); }
+      if (lineChart) { lineChart.destroy(); }
       var lineCtx = document.getElementById('lineChart').getContext('2d');
       lineChart = new Chart(lineCtx, {
         type: 'line',
@@ -378,48 +440,178 @@
         }
       });
       
-      // --- Pie Chart 1: Diskon Internal vs Diskon Eksternal ---
-      var filteredTotalDiskonInternal = 0;
-      var filteredTotalDiskonEksternal = 0;
-      filteredData.forEach(function(row) {
-        filteredTotalDiskonInternal += (parseFloat(row[6]) || 0) + (parseFloat(row[10]) || 0);
-        filteredTotalDiskonEksternal += (parseFloat(row[7]) || 0) + (parseFloat(row[8]) || 0) + (parseFloat(row[9]) || 0);
+      // Update Pie Chart (berdasarkan filter Perusahaan)
+      updatePieChart();
+      
+      // Update Grafik Rata-rata Diskon Internal per Cabang
+      updateAvgDiscountChart();
+    }
+    
+    // Grafik Branch: Actual Sales vs Total Diskon Internal per Bulan (Filter Cabang)
+    function updateBranchChart() {
+      var branchFilterValue = $('#branchFilter').val();
+      var filtered = (branchFilterValue === "All") ? rawData : rawData.filter(function(row) {
+        return row[1] === branchFilterValue;
       });
-      if(pieChart) { pieChart.destroy(); }
-      var pieCtx = document.getElementById('pieChart').getContext('2d');
-      pieChart = new Chart(pieCtx, {
-        type: 'pie',
+      // Kelompokkan data berdasarkan bulan
+      var group = {};
+      filtered.forEach(function(row) {
+        var m = row[3];
+        if (!group[m]) { group[m] = { actual: 0, diskonInternal: 0 }; }
+        group[m].actual += parseFloat(row[5]) || 0;
+        group[m].diskonInternal += (parseFloat(row[6]) || 0) + (parseFloat(row[10]) || 0);
+      });
+      var months = ["1","2","3","4","5","6","7","8","9","10","11","12"];
+      var labels = [], actualData = [], diskonData = [];
+      months.forEach(function(m) {
+        if (group[m] !== undefined) {
+          labels.push(m);
+          actualData.push(group[m].actual);
+          diskonData.push(group[m].diskonInternal);
+        }
+      });
+      // Hitung data kumulatif dari actualData
+      var cumulativeActual = [];
+      var runningTotal = 0;
+      for (var i = 0; i < actualData.length; i++) {
+        runningTotal += actualData[i];
+        cumulativeActual.push(runningTotal);
+      }
+      
+      if (branchChart) { branchChart.destroy(); }
+      var ctx = document.getElementById('branchChart').getContext('2d');
+      branchChart = new Chart(ctx, {
+        type: 'bar',
         data: {
-          labels: ['Diskon Internal', 'Diskon Eksternal'],
-          datasets: [{
-            data: [filteredTotalDiskonInternal, filteredTotalDiskonEksternal],
-            backgroundColor: ['rgba(54, 162, 235, 0.5)', 'rgba(255, 99, 132, 0.5)']
-          }]
+          labels: labels,
+          datasets: [
+            {
+              label: 'Actual Sales',
+              data: actualData,
+              backgroundColor: 'rgba(75, 192, 192, 0.5)'
+            },
+            {
+              label: 'Total Diskon Internal',
+              data: diskonData,
+              backgroundColor: 'rgba(255, 159, 64, 0.5)'
+            },
+            {
+              label: 'Cumulative Actual Sales',
+              data: cumulativeActual,
+              type: 'line',
+              borderColor: 'rgba(0, 0, 0, 0.7)',
+              backgroundColor: 'rgba(0, 0, 0, 0.3)',
+              fill: false,
+              tension: 0.3
+            }
+          ]
         },
         options: {
           responsive: true,
           plugins: {
             legend: { position: 'top' },
-            title: { display: true, text: 'Diskon Internal vs Diskon Eksternal' }
+            title: { display: true, text: 'Actual Sales vs Total Diskon Internal per Bulan (Filter Cabang)' }
           }
         }
       });
-      
-      // --- Pie Chart 2: Kurang byr Leasing vs Kurang byr MD ATPM ---
-      var filteredKurangByrLeasing = 0;
-      var filteredKurangByrMDATPM = 0;
-      filteredData.forEach(function(row) {
-        filteredKurangByrLeasing += parseFloat(row[13]) || 0;
-        filteredKurangByrMDATPM += parseFloat(row[14]) || 0;
+    }
+    
+    // Grafik Growth: Persentase kenaikan penjualan dan diskon internal per bulan
+    function updateGrowthChart() {
+      var branchFilterValue = $('#branchFilter').val();
+      var filtered = (branchFilterValue === "All") ? rawData : rawData.filter(function(row) {
+        return row[1] === branchFilterValue;
       });
-      if(pieChart2) { pieChart2.destroy(); }
-      var pieCtx2 = document.getElementById('pieChart2').getContext('2d');
-      pieChart2 = new Chart(pieCtx2, {
+      var group = {};
+      filtered.forEach(function(row) {
+        var m = row[3];
+        if (!group[m]) { group[m] = { actual: 0, diskonInternal: 0 }; }
+        group[m].actual += parseFloat(row[5]) || 0;
+        group[m].diskonInternal += (parseFloat(row[6]) || 0) + (parseFloat(row[10]) || 0);
+      });
+      var months = ["1","2","3","4","5","6","7","8","9","10","11","12"];
+      var labels = [], actualData = [], diskonData = [];
+      months.forEach(function(m) {
+        if (group[m] !== undefined) {
+          labels.push(m);
+          actualData.push(group[m].actual);
+          diskonData.push(group[m].diskonInternal);
+        }
+      });
+      function calcGrowth(dataArray) {
+        var growth = [0];
+        for (var i = 1; i < dataArray.length; i++) {
+          var prev = dataArray[i-1];
+          var curr = dataArray[i];
+          var pct = prev ? ((curr - prev) / prev * 100).toFixed(1) : 0;
+          growth.push(Number(pct));
+        }
+        return growth;
+      }
+      var actualGrowth = calcGrowth(actualData);
+      var diskonGrowth = calcGrowth(diskonData);
+      
+      if (growthChart) { growthChart.destroy(); }
+      var ctx = document.getElementById('growthChart').getContext('2d');
+      growthChart = new Chart(ctx, {
+        type: 'line',
+        data: {
+          labels: labels,
+          datasets: [
+            {
+              label: 'Growth Actual Sales (%)',
+              data: actualGrowth,
+              borderColor: 'rgba(75, 192, 192, 1)',
+              backgroundColor: 'rgba(75, 192, 192, 0.3)',
+              fill: false,
+              tension: 0.3
+            },
+            {
+              label: 'Growth Diskon Internal (%)',
+              data: diskonGrowth,
+              borderColor: 'rgba(255, 159, 64, 1)',
+              backgroundColor: 'rgba(255, 159, 64, 0.3)',
+              fill: false,
+              tension: 0.3
+            }
+          ]
+        },
+        options: {
+          responsive: true,
+          plugins: {
+            legend: { position: 'top' },
+            title: { display: true, text: 'Persentase Kenaikan Penjualan & Diskon Internal' }
+          },
+          scales: {
+            y: {
+              ticks: { callback: function(value) { return value + '%'; } }
+            }
+          }
+        }
+      });
+    }
+    
+    // Grafik Pie: Perbandingan Kurang byr Leasing vs Kurang byr MD ATPM berdasarkan Perusahaan
+    function updatePieChart() {
+      var companyFilterValue = $('#companyFilter').val();
+      var filteredData = (companyFilterValue === "All") 
+        ? rawData 
+        : rawData.filter(function(row) {
+            return row[16] === companyFilterValue;
+          });
+      var totalLeasing = 0, totalMDATPM = 0;
+      filteredData.forEach(function(row) {
+        totalLeasing += parseFloat(row[13]) || 0;
+        totalMDATPM += parseFloat(row[14]) || 0;
+      });
+      if (pieChart) { pieChart.destroy(); }
+      var ctx = document.getElementById('pieChart').getContext('2d');
+      pieChart = new Chart(ctx, {
         type: 'pie',
         data: {
-          labels: ['Kurang byr Leasing', 'Kurang byr MD ATPM'],
+          labels: ['Kurang byr Leasing', 'Kurang byr MD ATPPM'],
           datasets: [{
-            data: [filteredKurangByrLeasing, filteredKurangByrMDATPM],
+            data: [totalLeasing, totalMDATPM],
             backgroundColor: ['rgba(255, 205, 86, 0.5)', 'rgba(201, 203, 207, 0.5)']
           }]
         },
@@ -427,13 +619,79 @@
           responsive: true,
           plugins: {
             legend: { position: 'top' },
-            title: { display: true, text: 'Kurang byr Leasing vs Kurang byr MD ATPM' }
+            title: { display: true, text: 'Perbandingan Kurang byr Leasing vs Kurang byr MD ATPM (Perusahaan)' }
           }
         }
       });
     }
     
-    // AJAX call untuk sheet T_get
+    // Grafik Average Discount: Rata-rata Diskon Internal per Cabang (Internal / Aktual)
+    function updateAvgDiscountChart() {
+      var monthFilter = $('#monthFilter').val();
+      var filteredData = (monthFilter === "All") 
+        ? rawData 
+        : rawData.filter(function(row) {
+            return row[3] === monthFilter;
+          });
+      
+      // Kelompokkan data berdasarkan cabang dan hitung total diskon internal dan total aktual
+      var branchGroups = {};
+      filteredData.forEach(function(row) {
+        var branch = row[1];
+        // Diskon internal = potongan dealer (row[6]) + potongan tambahan (row[10])
+        var internal = (parseFloat(row[6]) || 0) + (parseFloat(row[10]) || 0);
+        var actual = parseFloat(row[5]) || 0;
+        if (!branchGroups[branch]) {
+          branchGroups[branch] = { totalInternal: 0, totalActual: 0 };
+        }
+        branchGroups[branch].totalInternal += internal;
+        branchGroups[branch].totalActual += actual;
+      });
+      
+      var branches = [];
+      var ratioValues = [];
+      for (var branch in branchGroups) {
+        branches.push(branch);
+        var totalActual = branchGroups[branch].totalActual;
+        var totalInternal = branchGroups[branch].totalInternal;
+        // Rasio = Total Diskon Internal / Total Aktual (nilai 0 jika total aktual nol)
+        var ratio = totalActual ? (totalInternal / totalActual) : 0;
+        ratioValues.push(ratio);
+      }
+      
+      if (avgDiscountChart) { avgDiscountChart.destroy(); }
+      var ctx = document.getElementById('avgDiscountChart').getContext('2d');
+      avgDiscountChart = new Chart(ctx, {
+        type: 'bar',
+        data: {
+          labels: branches,
+          datasets: [{
+            label: 'Rata-rata Diskon Internal / Aktual',
+            data: ratioValues,
+            backgroundColor: 'rgba(255, 99, 132, 0.5)'
+          }]
+        },
+        options: {
+          responsive: true,
+          plugins: {
+            legend: { position: 'top' },
+            title: { display: true, text: 'Rata-rata Diskon Internal per Cabang (Internal / Aktual)' }
+          },
+          scales: {
+            y: {
+              beginAtZero: true,
+              // Jika ingin ditampilkan dalam persen, kalikan nilai ratio dengan 100
+              ticks: {
+                callback: function(value) {
+                  return (value * 100).toFixed(1) + '%';
+                }
+              }
+            }
+          }
+        }
+      });
+    }
+    
     $(document).ready(function() {
       var sheetUrl = 'https://script.google.com/macros/s/AKfycbzYfwDZVjGcBceMWfd_ORI1tQgA-Oj9tS4vOt5WYb3i3ucjjoxu3SnWTtj3GhQCIxBMVw/exec';
       var sheetName = 'T_get';
@@ -442,6 +700,23 @@
         url: sheetUrl + '?sheet=' + sheetName,
         success: function(json) {
           var dataArray = json[sheetName].slice(1);
+          
+          // Mapping: Ubah bulan (misal "Jan") menjadi angka ("1")
+          var monthMapping = { 
+            "Jan": "1", "Feb": "2", "Mar": "3", "Apr": "4", 
+            "May": "5", "Jun": "6", "Jul": "7", "Aug": "8", 
+            "Sep": "9", "Oct": "10", "Nov": "11", "Dec": "12" 
+          };
+          for (var i = 0; i < dataArray.length; i++) {
+            var row = dataArray[i];
+            if (monthMapping[row[2]]) { row[2] = monthMapping[row[2]]; }
+          }
+          
+          // Filter: hanya tampilkan baris dengan Actual > 1 (nilai di index 4)
+          dataArray = dataArray.filter(function(row) {
+            return parseFloat(row[4]) > 1;
+          });
+          
           // Proses perhitungan ranking per Bulan
           var groupMap = {};
           for (var i = 0; i < dataArray.length; i++) {
@@ -483,7 +758,7 @@
             if (s < lowestSales) { lowestSales = s; lowestBranch = cab; }
           }
           
-          // Tampilkan statistik utama
+          // Tampilkan Statistik Utama
           $('#stats').html(
             '<div class="card">' +
               '<h3>Penjualan Tertinggi</h3>' +
@@ -501,6 +776,20 @@
             '</div>'
           );
           
+          // Populasi Dropdown Filter Cabang (untuk grafik Branch & Growth)
+          var branches = {};
+          rawData.forEach(function(row) { branches[row[1]] = true; });
+          var branchOptions = '<option value="All">Semua</option>';
+          for (var key in branches) { branchOptions += '<option value="'+ key +'">'+ key +'</option>'; }
+          $('#branchFilter').html(branchOptions);
+          
+          // Populasi Dropdown Filter Perusahaan (untuk Pie Chart)
+          var companies = {};
+          rawData.forEach(function(row) { companies[row[16]] = true; });
+          var companyOptions = '<option value="All">Semua</option>';
+          for (var key in companies) { companyOptions += '<option value="'+ key +'">'+ key +'</option>'; }
+          $('#companyFilter').html(companyOptions);
+          
           // Inisialisasi DataTable
           $('#dataTable').DataTable({
             data: dataArray,
@@ -508,11 +797,8 @@
             createdRow: function(row, data) {
               var rank = parseInt(data[0]);
               var bulan = data[3];
-              if (rank === 1) {
-                $(row).css('background-color', '#ccffcc');
-              } else if (rank === monthMaxRankMapping[bulan]) {
-                $(row).css('background-color', '#ffcccc');
-              }
+              if (rank === 1) { $(row).css('background-color', '#d4edda'); }
+              else if (rank === monthMaxRankMapping[bulan]) { $(row).css('background-color', '#f8d7da'); }
             },
             columns: [
               { data: 0, title: "Rank" },
@@ -552,16 +838,32 @@
               },
               { data: 13, title: "Kurang byr Leasing", render: $.fn.dataTable.render.number(',', '.',) },
               { data: 14, title: "Kurang byr MD ATPM", render: $.fn.dataTable.render.number(',', '.',) },
-              { data: 15, title: "Broker", render: $.fn.dataTable.render.number(',', '.',) }
+              { data: 15, title: "Broker", render: $.fn.dataTable.render.number(',', '.',) },
+              { data: 16, title: "Perusahaan", defaultContent: "" }
             ]
           });
           
-          // Inisialisasi chart dengan filter default ("All")
+          // Inisialisasi Grafik
           updateCharts($('#monthFilter').val());
+          updateBranchChart();
+          updateGrowthChart();
+          updatePieChart();
+          updateAvgDiscountChart();
           
-          // Event listener filter
+          // Event Listener Filter Bulan
           $('#monthFilter').on('change', function() {
             updateCharts($(this).val());
+            updatePieChart();
+            updateAvgDiscountChart();
+          });
+          // Event Listener Filter Cabang (Grafik Branch & Growth)
+          $('#branchFilter').on('change', function() {
+            updateBranchChart();
+            updateGrowthChart();
+          });
+          // Event Listener Filter Perusahaan (untuk Pie Chart)
+          $('#companyFilter').on('change', function() {
+            updatePieChart();
           });
         }
       });
