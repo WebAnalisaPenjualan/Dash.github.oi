@@ -65,6 +65,9 @@
 </head>
 <body>
   <h1>Trial Balance</h1>
+  <ul>
+    <li><a href="COA.html">Kembali</a></li>
+  </ul>
 
   <!-- Filter -->
   <div class="filter-container">
@@ -78,10 +81,16 @@
     </select>
   </div>
 
-  <!-- Tabel Laporan Laba Rugi -->
+  <!-- Tabel Laporan Laba Rugi (dipindah paling atas) -->
   <h2>Laporan Laba Rugi</h2>
   <div class="table-responsive">
     <table id="pnl-table"></table>
+  </div>
+
+  <!-- Tabel Persentase Kenaikan -->
+  <h2>Tabel Persentase Kenaikan</h2>
+  <div class="table-responsive">
+    <table id="percentage-table"></table>
   </div>
 
   <!-- Tabel Ringkasan (Perhitungan TB) -->
@@ -184,8 +193,10 @@
         tableContent += '<tr>';
         for (let j = 0; j < header.length; j++) {
           let cellData = row[j] || '';
+          // Kolom 2,3,4,5 adalah kolom angka: Beginning, Debit, Credit, End
           if ([2, 3, 4, 5].includes(j)) {
             if (j === 5) { 
+              // "End" perlu disesuaikan dengan code
               cellData = formatNumber(adjustValueForCode(row[j], row[9]));
             } else {
               cellData = formatNumber(cellData);
@@ -231,9 +242,70 @@
       document.getElementById('monthly-table').innerHTML = monthlyTable;
     }
 
+    // Fungsi untuk membangun tabel Persentase Kenaikan (MoM)
+    function buildPercentageChangeTable(rows) {
+      let accCodesSet = new Set();
+      for (let i = 0; i < rows.length; i++) {
+        if (rows[i][9]) accCodesSet.add(rows[i][9]);
+      }
+      let accCodes = Array.from(accCodesSet);
+
+      // Hitung nilai per bulan per kode
+      let monthlySums = {};
+      accCodes.forEach(code => { monthlySums[code] = Array(13).fill(0); });
+      for (let i = 0; i < rows.length; i++) {
+        let row = rows[i];
+        let endValue = adjustValueForCode(row[5], row[9]);
+        let bulan = parseInt(row[6]) || 0;
+        let glAcc1 = row[9];
+        if (glAcc1 && bulan >= 1 && bulan <= 12) {
+          monthlySums[glAcc1][bulan] += endValue;
+        }
+      }
+
+      // Hitung persentase kenaikan dari bulan (m-1) ke bulan (m)
+      let percentageChange = {};
+      accCodes.forEach(code => { percentageChange[code] = Array(13).fill(0); });
+
+      for (let code of accCodes) {
+        for (let m = 2; m <= 12; m++) {
+          let prevValue = monthlySums[code][m-1];
+          let currValue = monthlySums[code][m];
+          if (prevValue === 0) {
+            percentageChange[code][m] = 0;
+          } else {
+            let diff = ((currValue - prevValue) / Math.abs(prevValue)) * 100;
+            percentageChange[code][m] = diff;
+          }
+        }
+      }
+
+      // Bangun tabel HTML
+      let html = '<thead><tr><th>GL ACC1</th>';
+      for (let m = 2; m <= 12; m++) {
+        html += `<th>${m-1} -> ${m}</th>`;
+      }
+      html += '</tr></thead><tbody>';
+
+      accCodes.forEach(code => {
+        html += `<tr><td>${code}</td>`;
+        for (let m = 2; m <= 12; m++) {
+          let pct = percentageChange[code][m];
+          let pctFormatted = pct.toLocaleString('id-ID', { 
+            minimumFractionDigits: 2, 
+            maximumFractionDigits: 2 
+          }) + '%';
+          html += `<td>${pctFormatted}</td>`;
+        }
+        html += '</tr>';
+      });
+      html += '</tbody>';
+      document.getElementById('percentage-table').innerHTML = html;
+    }
+
     // Fungsi untuk membangun tabel Laporan Laba Rugi (PnL) dengan hanya summary
+    // Ditambahkan header "Total Bulan" dan perhitungan total per baris
     function buildPnLTable(rows) {
-      // Hitung monthlySums dari data (untuk semua kode)
       let monthlySums = {};
       for (let m = 1; m <= 12; m++) { monthlySums[m] = {}; }
       for (let i = 0; i < rows.length; i++) {
@@ -246,7 +318,6 @@
           monthlySums[bulan][glAcc1] += endValue;
         }
       }
-      // Hasil summary akan dihitung menggunakan base yang diambil dari monthlySums
       let result = {};
       displayPnLStructure.forEach(item => { result[item.label] = Array(13).fill(0); });
       for (let m = 1; m <= 12; m++) {
@@ -267,17 +338,22 @@
           result[item.label][m] = val;
         });
       }
+      // Tambahkan header Total Bulan
       let html = '<thead><tr><th>Acc Code</th>';
-      for (let m = 1; m <= 12; m++) { html += `<th>${m}</th>`; }
-      html += '</tr></thead><tbody>';
-      // Untuk baris summary, beri background biru muda
+      for (let m = 1; m <= 12; m++) { 
+        html += `<th>${m}</th>`; 
+      }
+      html += '<th>Total Bulan</th></tr></thead><tbody>';
       const specialLabels = new Set(["Penjualan Bersih", "Laba Kotor", "Laba Operasional", "Pendapatan Biaya Luar Usaha", "LabaRugi"]);
       displayPnLStructure.forEach(item => {
         let rowStyle = specialLabels.has(item.label) ? ' style="background-color: #ADD8E6;"' : '';
         html += `<tr${rowStyle}><td>${item.label}</td>`;
+        let total = 0;
         for (let m = 1; m <= 12; m++) {
           html += `<td>${formatNumber(result[item.label][m])}</td>`;
+          total += result[item.label][m];
         }
+        html += `<td>${formatNumber(total)}</td>`;
         html += '</tr>';
       });
       html += '</tbody>';
@@ -295,18 +371,24 @@
       if (selectedCompany !== '') {
         filteredRows = filteredRows.filter(r => r[8] === selectedCompany);
       }
+
       buildDataTable(filteredRows);
       buildMonthlyTable(filteredRows);
+      buildPercentageChangeTable(filteredRows);
       buildPnLTable(filteredRows);
-      // Inisialisasi DataTables untuk interaktivitas (hancurkan dulu jika sudah ada)
+      
       if ($.fn.DataTable.isDataTable('#data-table')) { $('#data-table').DataTable().destroy(); }
       if ($.fn.DataTable.isDataTable('#monthly-table')) { $('#monthly-table').DataTable().destroy(); }
+      if ($.fn.DataTable.isDataTable('#percentage-table')) { $('#percentage-table').DataTable().destroy(); }
       if ($.fn.DataTable.isDataTable('#pnl-table')) { $('#pnl-table').DataTable().destroy(); }
+
       $('#data-table').DataTable({ responsive: true });
       $('#monthly-table').DataTable({ responsive: true });
+      $('#percentage-table').DataTable({ responsive: true });
       $('#pnl-table').DataTable({ responsive: true });
     }
 
+    // Fungsi untuk mengambil data dari Google Sheets
     function getDataFromSheet() {
       const sheetUrl = 'https://script.google.com/macros/s/AKfycbwx_SDVE0cD2GaZCPRKCgZjMOf3Et2j1eqRLRq4cEpA-VAzV9PiQbgi1YFinEpj0gsW/exec';
       fetch(sheetUrl)
