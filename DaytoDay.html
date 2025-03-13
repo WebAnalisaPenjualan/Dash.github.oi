@@ -1,0 +1,452 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Day-To Day (D2D) Dashboard</title>
+  <!-- Sertakan CSS eksternal jika ada -->
+  <link rel="stylesheet" href="style.css">
+  <!-- Font Modern -->
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,400,500">
+  <style>
+    /* Styling Umum */
+    body {
+      font-family: 'Roboto', sans-serif;
+      margin: 0;
+      padding: 0;
+      background: #f7f7f7;
+    }
+    /* Header */
+    header {
+      background: #3949ab;
+      color: #fff;
+      padding: 20px;
+      text-align: center;
+    }
+    header h1 {
+      margin: 0;
+      font-size: 28px;
+    }
+    header nav a {
+      color: #ffca28;
+      text-decoration: none;
+      margin-top: 10px;
+      display: inline-block;
+    }
+    /* Global Filter */
+    #global-filter {
+      background: #fff;
+      padding: 15px;
+      margin: 20px auto;
+      border: 1px solid #ccc;
+      max-width: 800px;
+      text-align: center;
+    }
+    #global-filter label {
+      margin-right: 5px;
+    }
+    /* Tabel Analisa */
+    section {
+      margin: 20px auto;
+      background: #fff;
+      padding: 20px;
+      border: 1px solid #ccc;
+    }
+    section h2 {
+      text-align: center;
+      margin-bottom: 10px;
+    }
+    /* Tabel Data Utama (Raw Data) */
+    #main-data {
+      margin: 20px auto;
+      background: #fff;
+      padding: 20px;
+      border: 1px solid #ccc;
+      display: none;
+    }
+    /* Tabel Umum */
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 0 auto;
+      background: #fff;
+    }
+    table, th, td {
+      border: 1px solid #ccc;
+    }
+    th, td {
+      padding: 8px 12px;
+      text-align: left;
+      transition: background-color 0.3s ease;
+    }
+    th {
+      background: #f4f4f4;
+    }
+    table tr:hover {
+      background-color: #f9f9f9;
+    }
+    /* Total Data */
+    #totalData {
+      margin: 20px auto;
+      font-weight: bold;
+      text-align: center;
+    }
+    /* Footer */
+    footer {
+      background: #3949ab;
+      color: #fff;
+      text-align: center;
+      padding: 20px 10px;
+      margin-top: 40px;
+    }
+    footer a {
+      color: #ffca28;
+      text-decoration: none;
+      margin: 0 5px;
+    }
+    /* Responsive */
+    @media (max-width: 768px) {
+      th, td {
+        font-size: 14px;
+      }
+      #global-filter select {
+        margin-top: 5px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Day-To Day (D2D) Dashboard</h1>
+    <nav>
+      <a href="index.html">Kembali ke Dashboard</a>
+    </nav>
+  </header>
+  
+  <!-- Global Filter: Satu set filter berlaku untuk semua perhitungan -->
+  <section id="global-filter">
+    <label for="globalBranchFilter"><strong>Filter Cabang:</strong></label>
+    <select id="globalBranchFilter">
+      <option value="all">Semua Cabang</option>
+    </select>
+    <label for="globalDayFilter" style="margin-left:15px;"><strong>Filter Hari:</strong></label>
+    <select id="globalDayFilter">
+      <option value="all">Semua Hari</option>
+      <option value="Minggu">Minggu</option>
+      <option value="Senin">Senin</option>
+      <option value="Selasa">Selasa</option>
+      <option value="Rabu">Rabu</option>
+      <option value="Kamis">Kamis</option>
+      <option value="Jumat">Jumat</option>
+      <option value="Sabtu">Sabtu</option>
+    </select>
+    <label for="globalStartMonth" style="margin-left:15px;"><strong>Dari Bulan:</strong></label>
+    <select id="globalStartMonth">
+      <option value="all">Semua</option>
+      <option value="01">Jan</option>
+      <option value="02">Feb</option>
+      <option value="03">Mar</option>
+      <option value="04">Apr</option>
+      <option value="05">May</option>
+      <option value="06">Jun</option>
+      <option value="07">Jul</option>
+      <option value="08">Aug</option>
+      <option value="09">Sep</option>
+      <option value="10">Oct</option>
+      <option value="11">Nov</option>
+      <option value="12">Dec</option>
+    </select>
+    <label for="globalEndMonth" style="margin-left:15px;"><strong>Sampai Bulan:</strong></label>
+    <select id="globalEndMonth">
+      <option value="all">Semua</option>
+      <option value="01">Jan</option>
+      <option value="02">Feb</option>
+      <option value="03">Mar</option>
+      <option value="04">Apr</option>
+      <option value="05">May</option>
+      <option value="06">Jun</option>
+      <option value="07">Jul</option>
+      <option value="08">Aug</option>
+      <option value="09">Sep</option>
+      <option value="10">Oct</option>
+      <option value="11">Nov</option>
+      <option value="12">Dec</option>
+    </select>
+  </section>
+  
+  <main>
+    <!-- 1. Perubahan Penjualan Harian (Day-to-Day Change) dengan Data Gabungan -->
+    <section id="daily-change">
+      <h2>Perubahan Penjualan Harian (Day-to-Day Change)</h2>
+      <table>
+        <thead>
+          <tr>
+            <th>Tanggal</th>
+            <th>Hari</th>
+            <th>Jumlah Terjual</th>
+            <th>Perubahan (%)</th>
+            <th>3-Day Moving Average</th>
+            <th>Total Bulanan</th>
+            <th>Kontribusi (%)</th>
+          </tr>
+        </thead>
+        <tbody>
+          <!-- Data gabungan akan diisi secara dinamis -->
+        </tbody>
+      </table>
+      <p>
+        <strong>Insight:</strong> Tabel ini menampilkan perhitungan harian serta data gabungan:
+        <br>
+        - <em>Perubahan (%)</em>: Perubahan penjualan hari ini dibandingkan hari sebelumnya.
+        <br>
+        - <em>3-Day Moving Average</em>: Rata-rata penjualan selama 3 hari.
+        <br>
+        - <em>Total Bulanan</em>: Total penjualan pada bulan tersebut.
+        <br>
+        - <em>Kontribusi (%)</em>: Persentase penjualan hari ini terhadap total bulanan.
+      </p>
+    </section>
+
+    <!-- Tabel Data Utama (Raw Data) - Disembunyikan secara default -->
+    <section id="main-data" style="display: none;">
+      <h2>Tabel Data Utama</h2>
+      <table>
+        <thead>
+          <tr>
+            <th>Tanggal Jual</th>
+            <th>Cabang</th>
+            <th>Wilayah</th>
+            <th>Hari</th>
+            <th>Supervisor/Field</th>
+            <th>Salesman</th>
+            <th>Pembayaran</th>
+          </tr>
+        </thead>
+        <tbody id="data-table">
+          <!-- Data dari Google Sheets akan dimuat di sini -->
+        </tbody>
+      </table>
+    </section>
+    <div style="text-align: center; margin: 20px;">
+      <button id="toggle-main-data">Show/Hide Tabel Data Utama</button>
+    </div>
+  </main>
+  
+  <footer>
+    <p>&copy; 2025 Nama Perusahaan. All rights reserved.</p>
+    <p>
+      <a href="#">Facebook</a> | 
+      <a href="#">Twitter</a> | 
+      <a href="#">Instagram</a>
+    </p>
+    <p>Sumber Data: Google Sheets &amp; API. Info lebih lanjut hubungi 
+      <a href="mailto:agungsamodraa@gmail.com">agungsamodraa@gmail.com</a>
+    </p>
+  </footer>
+  
+  <script>
+    let globalRows = []; // Menyimpan data keseluruhan
+
+    // Fungsi format angka tanpa desimal
+    function formatNumber(num) {
+      return Number(num).toLocaleString('en-US', { minimumFractionDigits: 0, maximumFractionDigits: 0 });
+    }
+
+    function initFilter() {
+      console.log('Filter diinisialisasi');
+    }
+
+    function updateTotalData() {
+      console.log('Total data diperbarui');
+    }
+
+    // Fungsi untuk mengupdate dropdown filter global (Cabang)
+    function populateGlobalBranchFilter(rows) {
+      const globalBranchFilter = document.getElementById('globalBranchFilter');
+      let branches = new Set();
+      for (let i = 1; i < rows.length; i++) {
+        let row = rows[i];
+        if (row[1]) {
+          branches.add(row[1]);
+        }
+      }
+      let options = '<option value="all">Semua Cabang</option>';
+      branches.forEach(branch => {
+        options += `<option value="${branch}">${branch}</option>`;
+      });
+      globalBranchFilter.innerHTML = options;
+    }
+
+    // Fungsi untuk membaca nilai filter global (Cabang, Hari, dan Bulan)
+    function getGlobalFilters() {
+      const branch = document.getElementById('globalBranchFilter').value;
+      const day = document.getElementById('globalDayFilter').value;
+      const startMonth = document.getElementById('globalStartMonth').value;
+      const endMonth = document.getElementById('globalEndMonth').value;
+      return { branch, day, startMonth, endMonth };
+    }
+
+    // Fungsi update tabel Perubahan Penjualan Harian dengan data gabungan
+    function updateDailyChange(rows) {
+      const dayNames = ["Minggu", "Senin", "Selasa", "Rabu", "Kamis", "Jumat", "Sabtu"];
+      const filters = getGlobalFilters();
+      let dailySales = {};     // key: YYYY-MM-DD
+      let monthlyTotals = {};  // key: YYYY-MM
+
+      // Agregasi data harian dan total bulanan dengan filter bulan
+      for (let i = 1; i < rows.length; i++) {
+        let row = rows[i];
+        if (filters.branch !== "all" && row[1] !== filters.branch) continue;
+        let rawDate = row[2] || '';
+        if (rawDate) {
+          let dateObj = new Date(rawDate);
+          if (!isNaN(dateObj.getTime())) {
+            // Filter berdasarkan Hari
+            let rowDay = dayNames[dateObj.getDay()];
+            if (filters.day !== "all" && rowDay !== filters.day) continue;
+            // Filter berdasarkan rentang Bulan (hanya per bagian bulan, tanpa tahun)
+            let monthStr = String(dateObj.getMonth() + 1).padStart(2, '0');
+            if (filters.startMonth !== "all" && parseInt(monthStr) < parseInt(filters.startMonth)) continue;
+            if (filters.endMonth !== "all" && parseInt(monthStr) > parseInt(filters.endMonth)) continue;
+            
+            let dateKey = dateObj.getFullYear() + '-' +
+                          String(dateObj.getMonth() + 1).padStart(2, '0') + '-' +
+                          String(dateObj.getDate()).padStart(2, '0');
+            let monthKey = dateObj.getFullYear() + '-' + String(dateObj.getMonth() + 1).padStart(2, '0');
+            if (!dailySales[dateKey]) {
+              dailySales[dateKey] = { dateObj: dateObj, jumlahTerjual: 0 };
+            }
+            dailySales[dateKey].jumlahTerjual += 1;
+            if (!monthlyTotals[monthKey]) {
+              monthlyTotals[monthKey] = 0;
+            }
+            monthlyTotals[monthKey] += 1;
+          }
+        }
+      }
+
+      let sortedKeys = Object.keys(dailySales).sort();
+      let tableContent = '';
+      let previousSales = null;
+
+      sortedKeys.forEach((key, index) => {
+        let data = dailySales[key];
+        let jumlahTerjual = data.jumlahTerjual;
+        let dateObj = data.dateObj;
+        let day = String(dateObj.getDate()).padStart(2, '0');
+        let month = String(dateObj.getMonth() + 1).padStart(2, '0');
+        let year = dateObj.getFullYear();
+        let formattedDate = `${day}-${month}-${year}`;
+        let hari = dayNames[dateObj.getDay()];
+        
+        // Hitung perubahan (%) dari hari sebelumnya
+        let changePercent = '-';
+        if (previousSales !== null && previousSales !== 0) {
+          let change = ((jumlahTerjual - previousSales) / previousSales) * 100;
+          changePercent = (change >= 0 ? '+' : '') + change.toFixed(1) + '%';
+        }
+        previousSales = jumlahTerjual;
+
+        // 3-Day Moving Average
+        let movingAvg = '-';
+        if (index >= 2) {
+          let sum = dailySales[sortedKeys[index]].jumlahTerjual +
+                    dailySales[sortedKeys[index - 1]].jumlahTerjual +
+                    dailySales[sortedKeys[index - 2]].jumlahTerjual;
+          movingAvg = (sum / 3).toFixed(1);
+        }
+
+        // Total Bulanan dan Kontribusi (%)
+        let monthKey = dateObj.getFullYear() + '-' + String(dateObj.getMonth() + 1).padStart(2, '0');
+        let totalBulanan = monthlyTotals[monthKey] || 0;
+        let contribution = totalBulanan ? ((jumlahTerjual / totalBulanan) * 100).toFixed(1) + '%' : '-';
+
+        tableContent += '<tr>';
+        tableContent += `<td>${formattedDate}</td>`;
+        tableContent += `<td>${hari}</td>`;
+        tableContent += `<td>${jumlahTerjual}</td>`;
+        tableContent += `<td>${changePercent}</td>`;
+        tableContent += `<td>${movingAvg}</td>`;
+        tableContent += `<td>${totalBulanan}</td>`;
+        tableContent += `<td>${contribution}</td>`;
+        tableContent += '</tr>';
+      });
+      document.querySelector('#daily-change tbody').innerHTML = tableContent;
+    }
+
+    // Fungsi untuk mendapatkan data dari Google Sheets dan mengisi seluruh tabel analisa
+    function getDataFromSheet() {
+      const sheetUrl = 'https://script.google.com/macros/s/AKfycbwV4ZymIjEwWDxEBMZYZ4Y65WpUDGu4ijSQL6H0RYp6BCapNugYy5cPI9lGOQscTKm4/exec';
+      fetch(sheetUrl)
+        .then(response => response.json())
+        .then(data => {
+          console.log("Data diterima:", data);
+          let rows = data.DP_1 || data;
+          globalRows = rows;
+          populateGlobalBranchFilter(rows);
+          updateDailyChange(rows);
+          
+          // Isi Tabel Data Utama (Raw Data)
+          let tableContent = '';
+          for (let i = 1; i < rows.length; i++) {
+            let row = rows[i];
+            let rawDate = row[2] || '';
+            let formattedDate = '';
+            let hari = '';
+            if (rawDate) {
+              let dateObj = new Date(rawDate);
+              if (!isNaN(dateObj.getTime())) {
+                dateObj.setHours(0, 0, 0, 0);
+                let day = String(dateObj.getDate()).padStart(2, '0');
+                let month = String(dateObj.getMonth() + 1).padStart(2, '0');
+                let year = dateObj.getFullYear();
+                formattedDate = `${day}/${month}/${year}`;
+                const dayNames = ["Minggu", "Senin", "Selasa", "Rabu", "Kamis", "Jumat", "Sabtu"];
+                hari = dayNames[dateObj.getDay()];
+              } else {
+                formattedDate = rawDate;
+              }
+            }
+            tableContent += '<tr>';
+            tableContent += `<td>${formattedDate}</td>`;
+            tableContent += `<td>${row[1] || ''}</td>`;
+            tableContent += `<td>${row[63] || ''}</td>`;
+            tableContent += `<td>${hari}</td>`;
+            tableContent += `<td>${row[44] || ''}</td>`;
+            tableContent += `<td>${row[36] || ''}</td>`;
+            tableContent += `<td>${row[33] || ''}</td>`;
+            tableContent += '</tr>';
+          }
+          document.getElementById('data-table').innerHTML = tableContent;
+          initFilter();
+          updateTotalData();
+        })
+        .catch(error => {
+          console.error('Error loading data:', error);
+        });
+    }
+
+    // Event listener untuk update semua tabel analisa saat filter global berubah
+    document.getElementById('globalBranchFilter').addEventListener('change', function() {
+      updateDailyChange(globalRows);
+    });
+    document.getElementById('globalDayFilter').addEventListener('change', function() {
+      updateDailyChange(globalRows);
+    });
+    document.getElementById('globalStartMonth').addEventListener('change', function() {
+      updateDailyChange(globalRows);
+    });
+    document.getElementById('globalEndMonth').addEventListener('change', function() {
+      updateDailyChange(globalRows);
+    });
+
+    // Tombol toggle untuk menampilkan/menyembunyikan Tabel Data Utama
+    document.getElementById('toggle-main-data').addEventListener('click', function() {
+      const mainData = document.getElementById('main-data');
+      mainData.style.display = (mainData.style.display === 'none' || mainData.style.display === '') ? 'block' : 'none';
+    });
+
+    window.onload = getDataFromSheet;
+  </script>
+</body>
+</html>
