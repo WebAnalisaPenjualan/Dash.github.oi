@@ -1,0 +1,435 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Purchase Unit</title>
+  <style>
+    /* Reset dasar */
+    * {
+      margin: 0px;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: Arial, sans-serif;
+    }
+    body {
+      background: #f3f3f3;
+      color: #333;
+      margin-left: 20px;
+      margin-top: 20px;
+    }
+    .header {
+      margin-bottom: 20px;
+      font-size: 1.5em;
+      font-weight: bold;
+    }
+    /* Bagian konten utama */
+    .main-content {
+      flex: 1;
+    }
+    /* Baris tombol di atas */
+    .button-bar {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 8px;
+    }
+    .button-bar button {
+      padding: 6px 12px;
+      cursor: pointer;
+      border: 1px solid #ccc;
+      background: #f9f9f9;
+    }
+    .btn-new-entry {
+      background: #d00000;
+      color: #fff;
+      font-weight: bold;
+      border: none;
+      padding: 6px 16px;
+    }
+    /* Tab navigasi (“General”, “Tax”) */
+    .tabs {
+      border-bottom: 1px solid #ccc;
+      margin-bottom: 8px;
+      display: flex;
+      gap: 16px;
+    }
+    .tab {
+      padding: 8px;
+      cursor: pointer;
+    }
+    .tab.active {
+      border-bottom: 2px solid #007bff;
+      font-weight: bold;
+    }
+    /* Isi tab: form input */
+    .form-row {
+      display: flex;
+      margin-bottom: 8px;
+      gap: 16px;
+    }
+    .form-group {
+      display: flex;
+      flex-direction: column;
+      width: 200px;
+    }
+    .form-group label {
+      font-size: 0.9em;
+      margin-bottom: 4px;
+    }
+    .form-group input,
+    .form-group select {
+      padding: 4px;
+      border: 1px solid #ccc;
+    }
+    /* Bagian diskon, potongan, dsb. */
+    .top-discount {
+      display: flex;
+      gap: 16px;
+      margin: 10px 0;
+    }
+    /* Tabel “Order” */
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-bottom: 16px;
+    }
+    table thead {
+      background: #eee;
+    }
+    table th, table td {
+      border: 1px solid #ccc;
+      padding: 6px;
+      text-align: left;
+      font-size: 0.9em;
+    }
+    table tfoot {
+      background: #ddd;
+      font-weight: bold;
+    }
+    table tfoot td {
+      padding: 6px;
+    }
+  </style>
+</head>
+<body>
+  <!-- Tulisan paling atas -->
+  <div class="header">Form Purchase</div>
+
+  <!-- Konten utama -->
+  <div class="main-content">
+    <div class="button-bar">
+      <button>Home</button>
+      <button>Save</button>
+      <button>View Doc.</button>
+      <button>Generate</button>
+      <!-- Tombol Print Invoice dengan event printInvoice() -->
+      <button onclick="printInvoice()">Print Invoice</button>
+    </div>
+
+    <!-- Tab navigasi (General & Tax) -->
+    <div class="tabs">
+      <div class="tab active">General</div>
+      <div class="tab">Tax</div>
+    </div>
+
+    <!-- Form “General” -->
+    <div class="tab-content" id="tab-general">
+      <div class="form-row">
+        <div class="form-group">
+          <label for="docNo">Doc No:</label>
+          <input type="text" id="docNo" placeholder="Invoice No" />
+        </div>
+        <div class="form-group">
+          <label for="date">Date:</label>
+          <input type="date" id="date" value="2025-03-13" />
+        </div>
+        <div class="form-group">
+          <label for="dueDate">Due Date:</label>
+          <input type="date" id="dueDate" />
+        </div>
+        <div class="form-group">
+          <label for="term">Term:</label>
+          <input type="text" id="term" />
+        </div>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label for="externNo">Extern No:</label>
+          <input type="text" id="externNo" />
+        </div>
+        <div class="form-group">
+          <label for="supplier">Supplier:</label>
+          <input type="text" id="supplier" placeholder="Supplier Name" />
+        </div>
+        <div class="form-group">
+          <label for="bank">Bank:</label>
+          <select id="bank">
+            <option value="">-- Pilih Bank --</option>
+            <option value="1">Bank A</option>
+            <option value="2">Bank B</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="top-discount">
+        <div class="form-group">
+          <label for="diskonTop">Diskon TOP:</label>
+          <input type="number" id="diskonTop" value="0" />
+        </div>
+        <div class="form-group">
+          <label for="potonganScp">Potongan:</label>
+          <input type="number" id="potonganScp" value="0" />
+        </div>
+      </div>
+
+      <!-- Tabel Order -->
+      <h3>Order</h3>
+      <div class="button-bar">
+        <button>Refresh</button>
+        <!-- Tombol Add -->
+        <button onclick="addOrderRow()">Add</button>
+        <!-- Tombol Remove Selected -->
+        <button onclick="removeSelectedRows()">Remove Selected</button>
+      </div>
+      <table>
+        <thead>
+          <tr>
+            <th>Select</th>
+            <th>No.</th>
+            <th>Kode Produk</th>
+            <th>Nama Produk</th>
+            <th>Qty</th>
+            <th>Total</th>
+            <th>pricelist</th>
+          </tr>
+        </thead>
+        <tbody>
+          <!-- Baris Order akan ditambahkan di sini -->
+        </tbody>
+        <tfoot>
+          <tr>
+            <td colspan="4" style="text-align: right;">Total:</td>
+            <td id="totalQty">0</td>
+            <td id="totalTotal">0</td>
+            <td></td>
+          </tr>
+          <tr>
+            <td colspan="7">
+              Remarks:<br>
+              <textarea placeholder="Enter remarks" id="remarks" style="width:40%; height:100px;"></textarea>
+            </td>
+          </tr>
+        </tfoot>
+      </table>
+    </div>
+
+    <!-- Tab “Tax” -->
+    <div class="tab-content" id="tab-tax" style="display: none;">
+      <p>Form pajak di sini (PPN, PPh, dsb.)</p>
+    </div>
+  </div>
+
+  <!-- Script untuk tab, Order, dan Print Invoice -->
+  <script>
+    // Pengaturan tab
+    const tabEls = document.querySelectorAll('.tab');
+    const tabContents = document.querySelectorAll('.tab-content');
+    tabEls.forEach((tab, idx) => {
+      tab.addEventListener('click', () => {
+        tabEls.forEach(t => t.classList.remove('active'));
+        tab.classList.add('active');
+        tabContents.forEach(tc => tc.style.display = 'none');
+        tabContents[idx].style.display = 'block';
+      });
+    });
+
+    // Fungsi untuk menambahkan baris Order
+    function addOrderRow() {
+      const tableBody = document.querySelector('table tbody');
+      const rowCount = tableBody.rows.length + 1;
+      const newRow = tableBody.insertRow();
+
+      // Sel ceklist
+      const cellCheckbox = newRow.insertCell(0);
+      cellCheckbox.innerHTML = '<input type="checkbox" />';
+
+      // Sel nomor urut
+      const cellNo = newRow.insertCell(1);
+      cellNo.textContent = rowCount;
+
+      // Sel untuk Kode Produk, Nama Produk, Qty, Total, dan pricelist_id
+      const cellKodeProduk = newRow.insertCell(2);
+      const cellNamaProduk = newRow.insertCell(3);
+      const cellQty = newRow.insertCell(4);
+      const cellTotal = newRow.insertCell(5);
+      const cellPricelist = newRow.insertCell(6);
+
+      cellKodeProduk.innerHTML = '<input type="text" placeholder="Kode Produk" />';
+      cellNamaProduk.innerHTML = '<input type="text" placeholder="Nama Produk" />';
+      cellQty.innerHTML        = '<input type="number" placeholder="Qty" />';
+      cellTotal.innerHTML      = '<input type="number" placeholder="Total" readonly />';
+      cellPricelist.innerHTML  = '<input type="number" placeholder="pricelist_id" />';
+
+      // Ambil referensi input Qty, pricelist_id, dan Total
+      const qtyInput = cellQty.querySelector('input');
+      const pricelistInput = cellPricelist.querySelector('input');
+      const totalInput = cellTotal.querySelector('input');
+
+      // Fungsi perhitungan Total = Qty * pricelist_id
+      function updateTotal() {
+        const qty = parseFloat(qtyInput.value) || 0;
+        const price = parseFloat(pricelistInput.value) || 0;
+        totalInput.value = qty * price;
+        updateFooterTotals();
+      }
+      
+      qtyInput.addEventListener('input', updateTotal);
+      pricelistInput.addEventListener('input', updateTotal);
+    }
+
+    // Fungsi untuk menghapus baris yang dipilih
+    function removeSelectedRows() {
+      const tableBody = document.querySelector('table tbody');
+      for (let i = tableBody.rows.length - 1; i >= 0; i--) {
+        const row = tableBody.rows[i];
+        const checkbox = row.cells[0].querySelector('input[type="checkbox"]');
+        if (checkbox && checkbox.checked) {
+          tableBody.deleteRow(i);
+        }
+      }
+      updateRowNumbers();
+      updateFooterTotals();
+    }
+
+    // Fungsi untuk memperbarui nomor urut
+    function updateRowNumbers() {
+      const tableBody = document.querySelector('table tbody');
+      for (let i = 0; i < tableBody.rows.length; i++) {
+        tableBody.rows[i].cells[1].textContent = i + 1;
+      }
+    }
+
+    // Fungsi untuk mengupdate total Qty dan total Total di footer
+    function updateFooterTotals() {
+      const tableBody = document.querySelector('table tbody');
+      let totalQty = 0, totalTotal = 0;
+      for (let i = 0; i < tableBody.rows.length; i++) {
+        const qty = parseFloat(tableBody.rows[i].cells[4].querySelector('input').value) || 0;
+        const total = parseFloat(tableBody.rows[i].cells[5].querySelector('input').value) || 0;
+        totalQty += qty;
+        totalTotal += total;
+      }
+      document.getElementById('totalQty').textContent = totalQty;
+      document.getElementById('totalTotal').textContent = totalTotal;
+    }
+
+    // Fungsi untuk mencetak Invoice dengan tampilan profesional
+    function printInvoice() {
+      // Ambil data dari form
+      const docNo = document.getElementById('docNo').value;
+      const date = document.getElementById('date').value;
+      const dueDate = document.getElementById('dueDate').value;
+      const supplier = document.getElementById('supplier').value;
+      const remarks = document.getElementById('remarks').value;
+
+      // Ambil data Order dari tabel
+      const orderRows = document.querySelectorAll('table tbody tr');
+      let invoiceItemsHTML = '';
+      orderRows.forEach((row, index) => {
+        const kodeProduk = row.cells[2].querySelector('input').value;
+        const namaProduk = row.cells[3].querySelector('input').value;
+        const qty = row.cells[4].querySelector('input').value;
+        const total = row.cells[5].querySelector('input').value;
+        if (kodeProduk || namaProduk || qty || total) {
+          invoiceItemsHTML += `<tr>
+            <td>${index + 1}</td>
+            <td>${kodeProduk}</td>
+            <td>${namaProduk}</td>
+            <td>${qty}</td>
+            <td>${total}</td>
+          </tr>`;
+        }
+      });
+
+      // Ambil total dari footer
+      const totalQty = document.getElementById('totalQty').textContent;
+      const totalTotal = document.getElementById('totalTotal').textContent;
+
+      // Susun HTML Invoice
+      const invoiceHTML = `
+      <html>
+      <head>
+        <title>Invoice</title>
+        <style>
+          body { font-family: Arial, sans-serif; padding: 20px; }
+          .invoice-container { max-width: 800px; margin: auto; border: 1px solid #ccc; padding: 20px; }
+          .invoice-header { display: flex; justify-content: space-between; align-items: center; }
+          .company-info { }
+          .invoice-details { text-align: right; }
+          h1 { margin: 0; }
+          .invoice-table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+          .invoice-table th, .invoice-table td { border: 1px solid #ccc; padding: 8px; text-align: left; }
+          .invoice-summary { margin-top: 20px; text-align: right; }
+          .invoice-remarks { margin-top: 20px; }
+          .invoice-footer { margin-top: 40px; text-align: center; font-size: 0.9em; color: #777; }
+        </style>
+      </head>
+      <body>
+        <div class="invoice-container">
+          <div class="invoice-header">
+            <div class="company-info">
+              <h2>Company Name</h2>
+              <p>Address Line 1<br>Address Line 2<br>Phone: (xxx) xxx-xxxx</p>
+            </div>
+            <div class="invoice-details">
+              <h1>INVOICE</h1>
+              <p>Invoice No: ${docNo || '-'}</p>
+              <p>Date: ${date || '-'}</p>
+              <p>Due Date: ${dueDate || '-'}</p>
+            </div>
+          </div>
+          <hr>
+          <div class="client-info">
+            <p><strong>Supplier:</strong> ${supplier || '-'}</p>
+          </div>
+          <table class="invoice-table">
+            <thead>
+              <tr>
+                <th>No</th>
+                <th>Kode Produk</th>
+                <th>Nama Produk</th>
+                <th>Qty</th>
+                <th>Total</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${invoiceItemsHTML}
+            </tbody>
+          </table>
+          <div class="invoice-summary">
+            <p>Total Qty: ${totalQty}</p>
+            <p>Total Amount: ${totalTotal}</p>
+          </div>
+          <div class="invoice-remarks">
+            <p><strong>Remarks:</strong></p>
+            <p>${remarks || '-'}</p>
+          </div>
+          <div class="invoice-footer">
+            <p>Thank you for your business!</p>
+          </div>
+        </div>
+      </body>
+      </html>
+      `;
+
+      // Buka jendela baru untuk mencetak invoice
+      const printWindow = window.open('', '', 'width=900,height=700');
+      printWindow.document.write(invoiceHTML);
+      printWindow.document.close();
+      printWindow.focus();
+      printWindow.print();
+      printWindow.close();
+    }
+  </script>
+</body>
+</html>
