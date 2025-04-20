@@ -850,22 +850,21 @@ const auditorVal = auditorArr.join(", ");
       document.getElementById("addObjekBtn").addEventListener("click", addObjek);
       updateObjekList();
       // Event listener untuk tombol Save to Google Sheets
-      document.getElementById('saveToSheetBtn').addEventListener('click', () => {
-        fetch('https://script.google.com/macros/s/AKfycbzGH1agLu6yalQZkEbw-p4gSrF4riwV4eJ2cO4KIsOj_4bkRlJE372GGJZCLreePkRV/exec', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(notesData)
-        })
-        .then(res => res.json())
-        .then(response => {
-          if (response.status === 'success') {
-            alert('Data berhasil disimpan ke Google Sheets!');
-          } else {
-            alert('Gagal menyimpan: ' + response.message);
-          }
-        })
-        .catch(err => alert('Error: ' + err));
-      });
+document.getElementById('saveToSheetBtn').addEventListener('click', () => {
+  fetch('https://script.google.com/macros/s/AKfycbzGH1agLu6yalQZkEbw-p4gSrF4riwV4eJ2cO4KIsOj_4bkRlJE372GGJZCLreePkRV/exec', {
+    method: 'POST',
+    mode: 'no-cors', // hindari CORS error
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(notesData)
+  })
+  .then(() => {
+    alert('Data telah dikirim ke Google Sheets!');
+  })
+  .catch(err => {
+    console.error('Fetch error:', err);
+    alert('Error mengirim data. Pastikan URL Web App benar dan sudah di-deploy dengan akses "Anyone, even anonymous".');
+  });
+});
 
       // Inisialisasi awal
       loadNotesData();
