@@ -1,0 +1,859 @@
+<!DOCTYPE html>
+<html lang="id">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Time Audit Internal</title>
+    <!-- Google Fonts -->
+    <link
+      href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap"
+      rel="stylesheet"
+    />
+    <!-- Bootstrap CSS -->
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+    />
+    <style>
+      /* Global Styles */
+      body {
+        font-family: 'Roboto', sans-serif;
+        background-color: #f4f7f8;
+      }
+      .container {
+        padding: 20px;
+      }
+      h1 {
+        color: #333;
+        font-weight: 700;
+        margin-bottom: 30px;
+        text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.1);
+      }
+      /* Kalender */
+      .year-calendar {
+        margin: 0 auto 40px;
+      }
+      .year-nav {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        margin-bottom: 20px;
+        gap: 20px;
+      }
+      .year-nav button {
+        transition: background-color 0.3s ease, transform 0.2s ease;
+      }
+      .year-nav button:hover {
+        transform: scale(1.05);
+      }
+      .year-nav h3 {
+        font-size: 1.5rem;
+        font-weight: 500;
+        color: #555;
+      }
+      /* Kalender Bulanan */
+      .month-calendar {
+        border: none;
+        border-radius: 10px;
+        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+        background-color: #fff;
+        padding: 10px;
+        margin-bottom: 30px;
+        transition: transform 0.3s ease;
+      }
+      .month-calendar:hover {
+        transform: translateY(-3px);
+      }
+      .month-calendar h5 {
+        text-align: center;
+        margin-bottom: 10px;
+        font-size: 1.1rem;
+        color: #007bff;
+        border-bottom: 1px solid #eee;
+        padding-bottom: 5px;
+      }
+      .weekday-row .weekday {
+        text-align: center;
+        font-weight: 500;
+        border-bottom: 1px solid #ddd;
+        padding: 2px 0;
+        font-size: 0.75rem;
+        color: #666;
+      }
+      .month-days .day {
+        height: 60px;
+        border: 1px solid #eee;
+        padding: 3px;
+        position: relative;
+        cursor: pointer;
+        transition: background-color 0.3s ease, box-shadow 0.2s ease;
+        text-align: right;
+        font-size: 0.75rem;
+      }
+      .month-days .day:hover {
+        background-color: #f9f9f9;
+        box-shadow: inset 0 0 5px rgba(0, 0, 0, 0.05);
+      }
+      .month-days .date-number {
+        font-weight: 700;
+      }
+      .month-days .note-preview {
+        font-size: 0.65rem;
+        color: #777;
+        position: absolute;
+        bottom: 2px;
+        left: 2px;
+        right: 2px;
+        text-align: left;
+        overflow: hidden;
+        white-space: nowrap;
+        text-overflow: ellipsis;
+      }
+      .month-days .empty-day {
+        background-color: #fafafa;
+        border: none;
+        cursor: default;
+      }
+      /* Tabel Catatan */
+      #notesList h4 {
+        margin-bottom: 20px;
+        color: #444;
+      }
+      /* Modal */
+      .modal-content {
+        border-radius: 10px;
+        box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+      }
+      .modal-header {
+        border-bottom: none;
+      }
+      .modal-title {
+        color: #007bff;
+        font-weight: 500;
+      }
+      /* Custom Styles untuk Tabel pada Objek Audit & Daftar Audit */
+      .table-responsive .table th,
+      .table-responsive .table td {
+        vertical-align: middle;
+        text-align: center;
+      }
+      /* Atur ukuran kolom untuk Tabel Objek Audit (Modern, 8 kolom) */
+      /* Header: Objek Audit, Auditor PIC, Cabang, Open/Close, Tanggal Open, Tanggal Close, Poin, Aksi */
+      #auditTableBody tr td:nth-child(1) { width: 20%; }
+      #auditTableBody tr td:nth-child(2) { width: 15%; }
+      #auditTableBody tr td:nth-child(3) { width: 15%; }
+      #auditTableBody tr td:nth-child(4) { width: 10%; }
+      #auditTableBody tr td:nth-child(5) { width: 15%; }
+      #auditTableBody tr td:nth-child(6) { width: 15%; }
+      #auditTableBody tr td:nth-child(7) { width: 10%; }
+      #auditTableBody tr td:nth-child(8) { width: 5%; }
+      /* Atur ukuran kolom untuk Tabel Daftar Audit */
+      #auditListTableBody tr td:nth-child(1) { width: 25%; }
+      #auditListTableBody tr td:nth-child(2) { width: 25%; }
+      #auditListTableBody tr td:nth-child(3) { width: 20%; }
+      #auditListTableBody tr td:nth-child(4) { width: 15%; }
+      /* Input Fields */
+      .audit-input {
+        width: 100%;
+        padding: 6px 8px;
+        margin: 0;
+        box-sizing: border-box;
+        font-size: 0.9rem;
+        border: 1px solid #ced4da;
+        border-radius: 4px;
+      }
+      /* Responsive Styles */
+      @media (max-width: 768px) {
+        .container { padding: 10px; }
+        h1 { font-size: 1.8rem; margin-bottom: 20px; }
+        .year-nav h3 { font-size: 1.2rem; }
+        .month-calendar h5 { font-size: 1rem; }
+        .nav-tabs .nav-link { font-size: 0.9rem; padding: 0.5rem 1rem; }
+        input, textarea, select, button { font-size: 0.9rem; }
+      }
+      /* CSS untuk mode cetak */
+      @media print {
+        body { background-color: #fff !important; color: #000 !important; font-size: 12pt; margin: 10mm; }
+        .table-responsive { overflow: visible !important; }
+        #mainTab, .year-nav, #calendar-view, #data-view, #addRowBtn, #printAuditBtn, .nav, .modal, .modal-backdrop {
+          display: none !important; visibility: hidden !important;
+        }
+        #newtab-view, #daftarAudit { display: block !important; visibility: visible !important; position: static !important; }
+        h1.text-center { display: block !important; text-align: center !important; font-size: 20pt !important; margin-bottom: 15pt !important; }
+        #newtab-view h4.mt-3, #daftarAudit h4.mt-3 {
+          display: block !important; text-align: center !important; font-size: 16pt !important; margin-bottom: 10pt !important;
+        }
+        .table { width: 100% !important; border-collapse: collapse !important; }
+        .table-bordered { border: 1px solid #000 !important; }
+        .table-bordered th, .table-bordered td { border: 1px solid #000 !important; padding: 6px !important; }
+        thead { display: table-header-group !important; }
+        tfoot { display: table-footer-group !important; }
+        tr, th, td { page-break-inside: avoid !important; }
+        thead th:nth-child(8), tbody td:nth-child(8) { display: none !important; }
+        .audit-input, input, textarea, select {
+          border: none !important; box-shadow: none !important; outline: none !important; background: transparent !important; pointer-events: none !important;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <!-- Judul Utama -->
+      <h1 class="text-center">Time Audit Internal</h1>
+      <!-- Nav Tabs Utama -->
+      <ul class="nav nav-tabs" id="mainTab" role="tablist">
+        <li class="nav-item" role="presentation">
+          <button class="nav-link active" id="calendar-tab" data-bs-toggle="tab" data-bs-target="#calendar-view" type="button" role="tab" aria-controls="calendar-view" aria-selected="true">Kalender</button>
+        </li>
+        <li class="nav-item" role="presentation">
+          <button class="nav-link" id="data-tab" data-bs-toggle="tab" data-bs-target="#data-view" type="button" role="tab" aria-controls="data-view" aria-selected="false">Catatan</button>
+        </li>
+        <li class="nav-item" role="presentation">
+          <button class="nav-link" id="newtab-tab" data-bs-toggle="tab" data-bs-target="#newtab-view" type="button" role="tab" aria-controls="newtab-view" aria-selected="false">Objek Audit</button>
+        </li>
+        <!-- Tab Daftar Audit & Objek diperiksa -->
+        <li class="nav-item" role="presentation">
+          <button class="nav-link" id="daftarAudit-tab" data-bs-toggle="tab" data-bs-target="#daftarAudit" type="button" role="tab" aria-controls="daftarAudit" aria-selected="false">Daftar Audit &amp; Objek diperiksa</button>
+        </li>
+      </ul>
+
+      <div class="tab-content" id="mainTabContent">
+        <!-- Tab Kalender -->
+        <div class="tab-pane fade show active" id="calendar-view" role="tabpanel" aria-labelledby="calendar-tab">
+          <div class="year-nav my-3">
+            <button id="prevYear" class="btn btn-outline-primary">Tahun Sebelumnya</button>
+            <h3 id="yearDisplay"></h3>
+            <button id="nextYear" class="btn btn-outline-primary">Tahun Selanjutnya</button>
+          </div>
+          <div id="yearCalendar" class="year-calendar row row-cols-1 row-cols-md-3 g-3"></div>
+        </div>
+
+        <!-- Tab Catatan -->
+        <div class="tab-pane fade" id="data-view" role="tabpanel" aria-labelledby="data-tab">
+          <div id="notesList" class="mt-4">
+            <h4 class="text-secondary mb-3">Daftar Catatan Tersimpan</h4>
+            <!-- *** MOD: Cabang Filter UI Start *** -->
+            <div class="d-flex align-items-center mb-3">
+              <label for="cabangFilterSelect" class="me-2">Filter Cabang:</label>
+              <select id="cabangFilterSelect" class="form-select w-auto">
+                <option value="">Semua Cabang</option>
+              </select>
+            </div>
+            <!-- *** MOD: Cabang Filter UI End *** -->
+            <div class="table-responsive" id="notesOutput"></div>
+          </div>
+        </div>
+
+        <!-- Tab Objek Audit -->
+        <div class="tab-pane fade" id="newtab-view" role="tabpanel" aria-labelledby="newtab-tab">
+          <h4 class="mt-3">Daftar Objek Audit</h4>
+          <div class="table-responsive mt-3">
+            <table class="table table-bordered table-striped table-hover table-sm align-middle">
+              <thead class="table-light">
+                <tr>
+                  <th>Objek Audit</th>
+                  <th>Auditor PIC</th>
+                  <th>Cabang</th>
+                  <th>Open/Close</th>
+                  <th>Tanggal Open</th>
+                  <th>Tanggal Close</th>
+                  <th>Poin</th>
+                  <th>Aksi</th>
+                </tr>
+              </thead>
+              <tbody id="auditTableBody">
+                <!-- Baris akan ditambahkan secara dinamis -->
+              </tbody>
+            </table>
+            <button id="addRowBtn" class="btn btn-success mt-2">Add Row</button>
+            <button id="printAuditBtn" class="btn btn-secondary mt-2 ms-2">Print</button>
+          </div>
+        </div>
+
+        <!-- Tab Daftar Audit & Objek diperiksa -->
+        <div class="tab-pane fade" id="daftarAudit" role="tabpanel" aria-labelledby="daftarAudit-tab">
+          <h4 class="mt-3">Daftar Audit &amp; Objek diperiksa</h4>
+          <!-- Sub Tab: Daftar Objek diperiksa -->
+          <div class="mt-3">
+            <ul class="nav nav-tabs" id="daftarAuditSubTab" role="tablist">
+              <li class="nav-item" role="presentation">
+                <button class="nav-link active" id="objek-diperiksa-tab" data-bs-toggle="tab" data-bs-target="#objek-diperiksa" type="button" role="tab" aria-controls="objek-diperiksa" aria-selected="true">
+                  Daftar Objek diperiksa
+                </button>
+              </li>
+            </ul>
+            <div class="tab-content" id="daftarAuditSubTabContent">
+              <div class="tab-pane fade show active" id="objek-diperiksa" role="tabpanel" aria-labelledby="objek-diperiksa-tab">
+                <div class="mt-3">
+                  <label for="inputObjek">Objek diperiksa:</label>
+                  <input type="text" id="inputObjek" class="form-control" placeholder="Masukkan objek diperiksa...">
+                  <button id="addObjekBtn" class="btn btn-primary mt-2">Tambah</button>
+                </div>
+                <div class="mt-3" id="objekListOutput">
+                  <!-- Daftar objek diperiksa akan ditampilkan di sini -->
+                </div>
+              </div>
+            </div>
+          </div>
+          <!-- Tabel Data Auditor -->
+          <div class="table-responsive mt-3">
+            <table class="table table-bordered table-striped table-hover table-sm align-middle">
+              <thead class="table-light">
+                <tr>
+                  <th>Nama Auditor</th>
+                  <th>Jabatan Auditor</th>
+                  <th>NIK Auditor</th>
+                  <th>Status</th>
+                  <th>Aksi</th>
+                </tr>
+              </thead>
+              <tbody id="auditListTableBody">
+                <!-- Baris data auditor akan ditambahkan secara dinamis -->
+              </tbody>
+            </table>
+            <button id="addAuditListRowBtn" class="btn btn-success mt-2">Add Row</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Modal Input Data (Hanya Satu Tab: Input Data) -->
+      <div class="modal fade" id="noteModal" tabindex="-1" aria-labelledby="noteModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+          <div class="modal-content">
+            <div class="modal-header">
+              <h5 class="modal-title" id="noteModalLabel">Tambah/Edit Catatan</h5>
+              <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Tutup"></button>
+            </div>
+            <div class="modal-body">
+              <ul class="nav nav-tabs" id="modalTab" role="tablist">
+                <li class="nav-item" role="presentation">
+                  <button class="nav-link active" id="input-tab" data-bs-toggle="tab" data-bs-target="#input" type="button" role="tab" aria-controls="input" aria-selected="true">Input Data</button>
+                </li>
+              </ul>
+              <form id="noteForm" autocomplete="off">
+                <div class="tab-content" id="modalTabContent">
+                  <div class="tab-pane fade show active" id="input" role="tabpanel" aria-labelledby="input-tab">
+                    <div class="mb-3 mt-3">
+                      <label class="form-label">Data untuk Tanggal: <span id="selectedDate"></span></label>
+                    </div>
+                    <div class="mb-3">
+                      <label for="cabangInput" class="form-label">Cabang</label>
+                      <input type="text" id="cabangInput" class="form-control" placeholder="Masukkan cabang..." />
+                    </div>
+                    <div class="mb-3">
+                      <label for="tipeCabangInput" class="form-label">Pemeriksaan</label>
+                      <select id="tipeCabangInput" class="form-select">
+                        <option value="">Pilih Pemeriksaan...</option>
+                        <option value="OTS">OTS</option>
+                        <option value="Virtual">Virtual</option>
+                        <option value="Plan pemeriksaan">Plan pemeriksaan</option>
+                        <option value="Plan Lainnya">Plan Lainnya</option>
+                      </select>
+                    </div>
+                    <div class="mb-3">
+                      <label class="form-label">Auditor</label>
+                      <div class="row g-2">
+                        <div class="col-6 col-md-3">
+                          <input type="text" id="auditorInput1" class="form-control" placeholder="Auditor 1" />
+                        </div>
+                        <div class="col-6 col-md-3">
+                          <input type="text" id="auditorInput2" class="form-control" placeholder="Auditor 2" />
+                        </div>
+                        <div class="col-6 col-md-3">
+                          <input type="text" id="auditorInput3" class="form-control" placeholder="Auditor 3" />
+                        </div>
+                        <div class="col-6 col-md-3">
+                          <input type="text" id="auditorInput4" class="form-control" placeholder="Auditor 4" />
+                        </div>
+   
+                    </div>
+                    <div class="mb-3">
+                      <label for="keteranganInput" class="form-label">Keterangan</label>
+                      <textarea id="keteranganInput" class="form-control" rows="2" placeholder="Masukkan keterangan..."></textarea>
+                    </div>
+                    <div class="mb-3">
+                      <label for="hasilAuditInput" class="form-label">Hasil Temuan Audit</label>
+                      <textarea id="hasilAuditInput" class="form-control" rows="2" placeholder="Masukkan hasil temuan audit..."></textarea>
+                    </div>
+                  </div>
+                </div>
+                <div class="d-flex mt-3">
+                  <button type="submit" class="btn btn-primary">Simpan</button>
+                  <button type="button" id="deleteButton" class="btn btn-danger ms-2">Hapus</button>
+                </div>
+              </form>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Bootstrap JS Bundle -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+      /* --------------------------
+         Helper Functions and Global Variables
+      -------------------------- */
+      const tableFields = [
+        { key: "date", header: "Tanggal" },
+        { key: "cabang", header: "Cabang" },
+        { key: "tipeCabang", header: "Pemeriksaan" },
+        { key: "auditor", header: "Auditor" },
+        { key: "keterangan", header: "Keterangan" },
+        { key: "hasilAudit", header: "Hasil Audit" }
+      ];
+
+      const yearCalendarEl = document.getElementById("yearCalendar");
+      const yearDisplayEl = document.getElementById("yearDisplay");
+      const prevYearBtn = document.getElementById("prevYear");
+      const nextYearBtn = document.getElementById("nextYear");
+      const noteModal = new bootstrap.Modal(document.getElementById("noteModal"));
+      const selectedDateEl = document.getElementById("selectedDate");
+      const cabangInput = document.getElementById("cabangInput");
+      const tipeCabangInput = document.getElementById("tipeCabangInput");
+      const auditorInput1 = document.getElementById("auditorInput1");
+      const auditorInput2 = document.getElementById("auditorInput2");
+      const auditorInput3 = document.getElementById("auditorInput3");
+      const auditorInput4 = document.getElementById("auditorInput4");
+
+      const keteranganInput = document.getElementById("keteranganInput");
+      const hasilAuditInput = document.getElementById("hasilAuditInput");
+      const deleteButton = document.getElementById("deleteButton");
+
+      // *** MOD: Cabang Filter Variable Start ***
+      const cabangFilterSelect = document.getElementById("cabangFilterSelect");
+      // *** MOD: Cabang Filter Variable End ***
+      
+      let selectedDateKey = "";
+      let notesData = {};
+      let currentYear = new Date().getFullYear();
+      const monthNames = [
+        "Januari", "Februari", "Maret", "April", "Mei", "Juni",
+        "Juli", "Agustus", "September", "Oktober", "November", "Desember"
+      ];
+      const weekdayNames = ["Min", "Sen", "Sel", "Rab", "Kam", "Jum", "Sab"];
+      
+      /* LocalStorage Functions for Catatan */
+      const loadNotesData = () => {
+        const stored = localStorage.getItem("notesData");
+        notesData = stored ? JSON.parse(stored) : {};
+      };
+      const saveNotesData = () => {
+        localStorage.setItem("notesData", JSON.stringify(notesData));
+      };
+
+      // *** MOD: Populate Cabang Filter Function Start ***
+      const populateCabangFilter = () => {
+        if (!cabangFilterSelect) return;
+        const currentVal = cabangFilterSelect.value;
+        const cabangSet = new Set();
+        for (const date in notesData) {
+          const c = notesData[date].cabang?.trim();
+          if (c) cabangSet.add(c);
+        }
+        const options = [
+          `<option value="">Semua Cabang</option>`,
+          ...Array.from(cabangSet).sort().map(c => `<option value="${c}" ${c === currentVal ? "selected" : ""}>${c}</option>`)
+        ].join("");
+        cabangFilterSelect.innerHTML = options;
+      };
+      // *** MOD: Populate Cabang Filter Function End ***
+      
+      /* --------------------------
+         Calendar Generation
+      -------------------------- */
+      function generateMonthHTML(year, month) {
+        let html = '<div class="row row-cols-7 g-0 weekday-row">';
+        weekdayNames.forEach(d => html += `<div class="col weekday">${d}</div>`);
+        html += '</div>';
+
+        const firstDay = new Date(year, month, 1).getDay();
+        const daysInMonth = new Date(year, month+1, 0).getDate();
+        const rows = Math.ceil((firstDay+daysInMonth)/7);
+        let day = 1;
+        for (let r=0; r<rows; r++) {
+          html += '<div class="row row-cols-7 g-0">';
+          for (let c=0; c<7; c++) {
+            const idx = r*7 + c;
+            if (idx<firstDay || day>daysInMonth) {
+              html += '<div class="col day empty-day"></div>';
+            } else {
+              const key = `${year}-${String(month+1).padStart(2,'0')}-${String(day).padStart(2,'0')}`;
+              const e = notesData[key];
+              const prev = e ? `${e.cabang} – ${e.keterangan.slice(0,10)}…` : '';
+              const hol = new Date(year, month, day).getDay()===0?'text-danger':'';
+              let styleA = '';
+              if (e && e.tipeCabang) {
+                switch(e.tipeCabang) {
+                  case 'OTS': styleA=' style="background-color:#cce5ff;"'; break;
+                  case 'Virtual': styleA=' style="background-color:#d4edda;"'; break;
+                  case 'Plan pemeriksaan': styleA=' style="background-color:#fff3cd;"'; break;
+                  case 'Plan Lainnya': styleA=' style="background-color:#ffe5b4;"'; break;
+                }
+              }
+              html += `<div class="col day${e?' has-note':''}" data-date="${key}"${styleA}>
+                         <div class="date-number ${hol}">${day}</div>
+                         ${e?`<div class="note-preview">${prev}</div>`:''}
+                       </div>`;
+              day++;
+            }
+          }
+          html += '</div>';
+        }
+        return html;
+      }
+      
+      const generateYearCalendar = (year) => {
+        yearDisplayEl.textContent = year;
+        let html = "";
+        for (let m = 0; m < 12; m++) {
+          html += `<div class="col">
+                    <div class="month-calendar p-2">
+                      <h5>${monthNames[m]} ${year}</h5>
+                      <div class="month-days">
+                        ${generateMonthHTML(year, m)}
+                      </div>
+                    </div>
+                  </div>`;
+        }
+        yearCalendarEl.innerHTML = html;
+        attachDayClickEvents();
+      };
+      
+      const generateCalendar = () => generateYearCalendar(currentYear);
+      
+      /* --------------------------
+         Calendar Day Click Event
+      -------------------------- */
+      const attachDayClickEvents = () => {
+        document.querySelectorAll(".month-days .day").forEach(dayEl => {
+          if (dayEl.hasAttribute("data-date")) {
+            dayEl.addEventListener("click", () => {
+              selectedDateKey = dayEl.getAttribute("data-date");
+              selectedDateEl.textContent = selectedDateKey;
+              const entry = notesData[selectedDateKey] || { cabang: "", tipeCabang: "", auditor: "", keterangan: "", hasilAudit: "" };
+              cabangInput.value = entry.cabang;
+              tipeCabangInput.value = entry.tipeCabang;
+              // Split field auditor (dipisah “, ”) ke masing‑masing input
+              const savedAuditors = entry.auditor
+                 ? entry.auditor.split(/,\s*/).map(s => s.trim())
+                : [];
+                auditorInput1.value = savedAuditors[0] || "";
+                auditorInput2.value = savedAuditors[1] || "";
+                auditorInput3.value = savedAuditors[2] || "";
+              auditorInput4.value = savedAuditors[3] || "";
+
+              keteranganInput.value = entry.keterangan;
+              hasilAuditInput.value = entry.hasilAudit;
+              noteModal.show();
+            });
+          }
+        });
+      };
+      
+      /* --------------------------
+         Catatan (Notes) Functions
+      -------------------------- */
+      const updateNotesList = () => {
+        // *** MOD: Populate cabang filter each refresh ***
+        populateCabangFilter();
+        // *** MOD End ***
+        const output = document.getElementById("notesOutput");
+        if (Object.keys(notesData).length === 0) {
+          output.innerHTML = "<p>Tidak ada data tersimpan.</p>";
+        } else {
+          const selectedCabang = cabangFilterSelect ? cabangFilterSelect.value : ""; // *** MOD: get filter value ***
+          let html = `<table class="table table-bordered table-striped table-hover table-sm align-middle">
+                        <thead class="table-light">
+                          <tr>`;
+          tableFields.forEach(field => html += `<th>${field.header}</th>`);
+          html += `</tr></thead><tbody>`;
+          for (const date in notesData) {
+            const entry = notesData[date];
+            // *** MOD: apply filter ***
+            if (selectedCabang && entry.cabang !== selectedCabang) continue;
+            // *** MOD End ***
+            html += "<tr>";
+            tableFields.forEach(field => {
+              const val = field.key === "date" ? date : (entry[field.key] || (["tipeCabang", "auditor"].includes(field.key) ? "-" : ""));
+              html += `<td>${val}</td>`;
+            });
+            html += "</tr>";
+          }
+          html += "</tbody></table>";
+          output.innerHTML = html;
+        }
+      };
+      
+      /* --------------------------
+         LocalStorage for Catatan
+      -------------------------- */
+      loadNotesData();
+      generateCalendar();
+      updateNotesList();
+      
+      /* --------------------------
+         Modal Form Handling for Catatan
+      -------------------------- */
+      document.getElementById("noteForm").addEventListener("submit", (e) => {
+        e.preventDefault();
+        const cabangVal = cabangInput.value.trim();
+        const tipeVal = tipeCabangInput.value;
+        // Ambil ke‑4 input, buang yang kosong, lalu join dengan “, ”
+        const auditorArr = [
+        auditorInput1.value.trim(),
+        auditorInput2.value.trim(),
+        auditorInput3.value.trim(),
+        auditorInput4.value.trim()
+].filter(v => v !== "");
+const auditorVal = auditorArr.join(", ");
+
+        const keteranganVal = keteranganInput.value.trim();
+        const hasilVal = hasilAuditInput.value.trim();
+        if (cabangVal || tipeVal || auditorVal || keteranganVal || hasilVal) {
+          notesData[selectedDateKey] = { cabang: cabangVal, tipeCabang: tipeVal, auditor: auditorVal, keterangan: keteranganVal, hasilAudit: hasilVal };
+        } else {
+          delete notesData[selectedDateKey];
+        }
+        saveNotesData();
+        generateCalendar();
+        updateNotesList();
+        noteModal.hide();
+      });
+      
+      deleteButton.addEventListener("click", (e) => {
+        e.preventDefault();
+        if (notesData[selectedDateKey]) {
+          delete notesData[selectedDateKey];
+          saveNotesData();
+          generateCalendar();
+          updateNotesList();
+          noteModal.hide();
+        } else {
+          alert("Tidak ada data untuk dihapus.");
+        }
+      });
+
+      // *** MOD: Event listener for cabang filter change ***
+      if (cabangFilterSelect) {
+        cabangFilterSelect.addEventListener("change", updateNotesList);
+      }
+      // *** MOD End ***
+      
+      /* --------------------------
+         Fungsi untuk Tab Objek Audit (Audit Data)
+         Termasuk perhitungan poin berdasarkan selisih tanggal (openDate & closeDate)
+      -------------------------- */
+      const computePoin = (openDate, closeDate) => {
+        if (!openDate || !closeDate) return "";
+        const d1 = new Date(openDate);
+        const d2 = new Date(closeDate);
+        const diff = Math.round((d2 - d1) / (1000 * 60 * 60 * 24));
+        if (diff < 0) return "";
+        switch (diff) {
+          case 0: return 5;
+          case 1: return 4;
+          case 2: return 3;
+          case 3: return 2;
+          case 4: return 1;
+          default: return 0;
+        }
+      };
+      
+      const saveAuditData = (data) => localStorage.setItem("auditData", JSON.stringify(data));
+      const loadAuditData = () => {
+        const stored = localStorage.getItem("auditData");
+        return stored ? JSON.parse(stored) : [];
+      };
+      
+      // Update tabel audit dengan dropdown untuk "Objek Audit" dan "Auditor PIC", dua tanggal & perhitungan poin
+      const updateAuditTable = () => {
+        const auditData = loadAuditData();
+        const auditorList = loadAuditListData(); // dari tab Daftar Audit
+        const objekList = loadObjekData(); // dari tab Daftar Audit & Objek diperiksa
+        const tbody = document.getElementById("auditTableBody");
+        tbody.innerHTML = "";
+        auditData.forEach((entry, i) => {
+          let objekOptions = `<option value="">Pilih Objek Audit</option>`;
+          objekList.forEach(objek => {
+            const sel = entry.obyekAudit === objek ? "selected" : "";
+            objekOptions += `<option value="${objek}" ${sel}>${objek}</option>`;
+          });
+          let auditorOptions = `<option value="">Pilih Auditor</option>`;
+          auditorList.forEach(auditor => {
+            const sel = entry.auditorPIC === auditor.nama ? "selected" : "";
+            auditorOptions += `<option value="${auditor.nama}" ${sel}>${auditor.nama}</option>`;
+          });
+          const row = `
+            <tr data-index="${i}">
+              <td><select class="audit-input" data-field="obyekAudit">${objekOptions}</select></td>
+              <td><select class="audit-input" data-field="auditorPIC">${auditorOptions}</select></td>
+              <td><input type="text" class="audit-input" data-field="cabang" value="${entry.cabang || ''}" placeholder="Masukkan Cabang..." /></td>
+              <td>
+                <select class="audit-input" data-field="status">
+                  <option value="">Pilih Status...</option>
+                  <option value="Open" ${entry.status === "Open" ? "selected" : ""}>Open</option>
+                  <option value="Close" ${entry.status === "Close" ? "selected" : ""}>Close</option>
+                </select>
+              </td>
+              <td><input type="date" class="audit-input" data-field="openDate" value="${entry.openDate || ''}" /></td>
+              <td><input type="date" class="audit-input" data-field="closeDate" value="${entry.closeDate || ''}" /></td>
+              <td><input type="text" class="audit-input" data-field="poin" value="${computePoin(entry.openDate, entry.closeDate)}" readonly /></td>
+              <td><button class="btn btn-danger btn-sm delete-row">Delete</button></td>
+            </tr>
+          `;
+          tbody.insertAdjacentHTML("beforeend", row);
+        });
+      };
+      
+      const addAuditRow = () => {
+        const auditData = loadAuditData();
+        auditData.push({ obyekAudit: "", auditorPIC: "", cabang: "", status: "", openDate: "", closeDate: "", poin: "" });
+        saveAuditData(auditData);
+        updateAuditTable();
+      };
+      
+      document.getElementById("auditTableBody").addEventListener("change", (e) => {
+        if (e.target.classList.contains("audit-input")) {
+          const row = e.target.closest("tr");
+          const idx = row.getAttribute("data-index");
+          const field = e.target.getAttribute("data-field");
+          const auditData = loadAuditData();
+          auditData[idx][field] = e.target.value;
+          if (field === "openDate" || field === "closeDate") {
+            auditData[idx].poin = computePoin(auditData[idx].openDate, auditData[idx].closeDate);
+          }
+          saveAuditData(auditData);
+          updateAuditTable();
+        }
+      });
+      
+      document.getElementById("auditTableBody").addEventListener("click", (e) => {
+        if (e.target.classList.contains("delete-row")) {
+          const row = e.target.closest("tr");
+          const idx = row.getAttribute("data-index");
+          const auditData = loadAuditData();
+          auditData.splice(idx, 1);
+          saveAuditData(auditData);
+          updateAuditTable();
+        }
+      });
+      
+      document.getElementById("addRowBtn").addEventListener("click", addAuditRow);
+      
+      /* --------------------------
+         Tab Daftar Audit & Objek diperiksa
+      -------------------------- */
+      const saveAuditListData = (data) => localStorage.setItem("auditListData", JSON.stringify(data));
+      const loadAuditListData = () => {
+        const stored = localStorage.getItem("auditListData");
+        return stored ? JSON.parse(stored) : [];
+      };
+      
+      const updateAuditListTable = () => {
+        const data = loadAuditListData();
+        const tbody = document.getElementById("auditListTableBody");
+        tbody.innerHTML = "";
+        data.forEach((entry, i) => {
+          const row = `
+            <tr data-index="${i}">
+              <td><input type="text" class="audit-input" data-field="nama" value="${entry.nama || ''}" placeholder="Nama Auditor" /></td>
+              <td><input type="text" class="audit-input" data-field="jabatan" value="${entry.jabatan || ''}" placeholder="Jabatan Auditor" /></td>
+              <td><input type="text" class="audit-input" data-field="nik" value="${entry.nik || ''}" placeholder="NIK Auditor" /></td>
+              <td>
+                <select class="audit-input" data-field="status">
+                  <option value="Aktif" ${entry.status === "Aktif" ? "selected" : ""}>Aktif</option>
+                  <option value="Non Aktif" ${entry.status === "Non Aktif" ? "selected" : ""}>Non Aktif</option>
+                </select>
+              </td>
+              <td><button class="btn btn-danger btn-sm delete-audit-list-row">Delete</button></td>
+            </tr>
+          `;
+          tbody.insertAdjacentHTML("beforeend", row);
+        });
+      };
+      
+      const addAuditListRow = () => {
+        const data = loadAuditListData();
+        data.push({ nama: "", jabatan: "", nik: "", status: "Aktif" });
+        saveAuditListData(data);
+        updateAuditListTable();
+      };
+      
+      document.getElementById("auditListTableBody").addEventListener("change", (e) => {
+        if (e.target.classList.contains("audit-input")) {
+          const row = e.target.closest("tr");
+          const idx = row.getAttribute("data-index");
+          const field = e.target.getAttribute("data-field");
+          const data = loadAuditListData();
+          data[idx][field] = e.target.value;
+          saveAuditListData(data);
+        }
+      });
+      
+      document.getElementById("auditListTableBody").addEventListener("click", (e) => {
+        if (e.target.classList.contains("delete-audit-list-row")) {
+          const row = e.target.closest("tr");
+          const idx = row.getAttribute("data-index");
+          const data = loadAuditListData();
+          data.splice(idx, 1);
+          saveAuditListData(data);
+          updateAuditListTable();
+        }
+      });
+      
+      document.getElementById("addAuditListRowBtn").addEventListener("click", addAuditListRow);
+      
+      /* --------------------------
+         Sub Tab: Daftar Objek diperiksa
+      -------------------------- */
+      const loadObjekData = () => {
+        const stored = localStorage.getItem("objekData");
+        return stored ? JSON.parse(stored) : [];
+      };
+      const saveObjekData = (data) => localStorage.setItem("objekData", JSON.stringify(data));
+      
+      const updateObjekList = () => {
+        const data = loadObjekData();
+        let html = data.length === 0 ? "<p>Tidak ada objek yang diperiksa.</p>" : `<ul class="list-group">`;
+        data.forEach((item, i) => {
+          html += `<li class="list-group-item d-flex justify-content-between align-items-center">
+                    ${item}
+                    <button class="btn btn-sm btn-danger" onclick="deleteObjek(${i})">Delete</button>
+                   </li>`;
+        });
+        if (data.length > 0) html += `</ul>`;
+        document.getElementById("objekListOutput").innerHTML = html;
+      };
+      
+      const addObjek = () => {
+        const input = document.getElementById("inputObjek");
+        const value = input.value.trim();
+        if (value) {
+          const data = loadObjekData();
+          data.push(value);
+          saveObjekData(data);
+          input.value = "";
+          updateObjekList();
+        }
+      };
+      
+      const deleteObjek = (index) => {
+        const data = loadObjekData();
+        data.splice(index, 1);
+        saveObjekData(data);
+        updateObjekList();
+      };
+      
+      document.getElementById("addObjekBtn").addEventListener("click", addObjek);
+      updateObjekList();
+      
+      // Inisialisasi Awal
+      loadNotesData();
+      generateCalendar();
+      updateNotesList();
+      updateAuditTable();
+      updateAuditListTable();
+    </script>
+  </body>
+</html>
