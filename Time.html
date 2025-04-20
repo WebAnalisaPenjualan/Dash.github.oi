@@ -229,17 +229,19 @@
         </div>
 
         <!-- Tab Catatan -->
-        <div class="tab-pane fade" id="data-view" role="tabpanel" aria-labelledby="data-tab">
+        <div class="tab-pane fade" id="data-view" role="tabpanel">
           <div id="notesList" class="mt-4">
             <h4 class="text-secondary mb-3">Daftar Catatan Tersimpan</h4>
-            <!-- *** MOD: Cabang Filter UI Start *** -->
+            <!-- Filter Cabang -->
             <div class="d-flex align-items-center mb-3">
               <label for="cabangFilterSelect" class="me-2">Filter Cabang:</label>
               <select id="cabangFilterSelect" class="form-select w-auto">
                 <option value="">Semua Cabang</option>
               </select>
             </div>
-            <!-- *** MOD: Cabang Filter UI End *** -->
+            <!-- Tombol Save -->
+            <button id="saveToSheetBtn" class="btn btn-primary mb-3">Save to Google Sheets</button>
+            <!-- Output tabel catatan -->
             <div class="table-responsive" id="notesOutput"></div>
           </div>
         </div>
@@ -847,13 +849,32 @@ const auditorVal = auditorArr.join(", ");
       
       document.getElementById("addObjekBtn").addEventListener("click", addObjek);
       updateObjekList();
-      
-      // Inisialisasi Awal
+      // Event listener untuk tombol Save to Google Sheets
+      document.getElementById('saveToSheetBtn').addEventListener('click', () => {
+        fetch('https://script.google.com/macros/s/AKfycbzGH1agLu6yalQZkEbw-p4gSrF4riwV4eJ2cO4KIsOj_4bkRlJE372GGJZCLreePkRV/exec', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(notesData)
+        })
+        .then(res => res.json())
+        .then(response => {
+          if (response.status === 'success') {
+            alert('Data berhasil disimpan ke Google Sheets!');
+          } else {
+            alert('Gagal menyimpan: ' + response.message);
+          }
+        })
+        .catch(err => alert('Error: ' + err));
+      });
+
+      // Inisialisasi awal
       loadNotesData();
       generateCalendar();
       updateNotesList();
       updateAuditTable();
       updateAuditListTable();
+      updateObjekList();
+  
     </script>
   </body>
 </html>
